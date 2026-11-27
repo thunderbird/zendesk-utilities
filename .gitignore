@@ -221,3 +221,9 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Scraped Zendesk data and the browser session must never be committed.
+# scrape_macros.py also refuses to write inside this repository.
+zendesk-data/
+firefox-profile/
+macros/
