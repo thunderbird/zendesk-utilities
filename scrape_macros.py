@@ -26,7 +26,7 @@ driven over WebDriver BiDi with Playwright's `moz-firefox` channel. Playwright's
 own bundled Firefox is a patched build that calls itself Nightly; we do not use it.
 
   uv run scrape_macros.py --login             # sign in by hand in Firefox
-  uv run scrape_macros.py                     # download all shared macros
+  uv run scrape_macros.py                     # download all shared macros and groups
   uv run scrape_macros.py --limit 3           # trial run
   uv run scrape_macros.py --force             # rewrite every file
 
@@ -50,6 +50,7 @@ HOME = Path.home()
 DEFAULT_DATA = HOME / "zendesk-data"
 DEFAULT_OUT = DEFAULT_DATA / "macros"
 DEFAULT_PROFILE = DEFAULT_DATA / "firefox-profile"
+DEFAULT_GROUPS_OUT = DEFAULT_DATA / "groups"
 DEFAULT_SUBDOMAIN = "tbpro"
 FIREFOX_CHANNEL = "moz-firefox"  # the monthly release, not Nightly or Beta
 
@@ -195,25 +196,45 @@ def next_page_url(page: dict) -> str | None:
     return page.get("next_page")
 
 
-def list_macros(request, base: str, delay: float, limit: int | None, sleep=time.sleep):
-    """Return (macros, complete). `complete` is False when `limit` cut the list."""
-    macros: list[dict] = []
-    url: str | None = first_page_url(base)
+def groups_url(base: str) -> str:
+    # The web app (issue #3) shows group names for macro restrictions.
+    # exclude_deleted=false: some macros are still restricted to deleted
+    # groups, and the list leaves those out by default.
+    return f"{base}/api/v2/groups.json?exclude_deleted=false&page%5Bsize%5D={PAGE_SIZE}"
+
+
+def list_resource(request, url: str | None, key: str, delay: float,
+                  limit: int | None, sleep=time.sleep):
+    """Page through a list endpoint. Return (items, complete).
+
+    `key` is the list's name in the response, for example "macros" or
+    "groups". `complete` is False when `limit` cut the list.
+    """
+    items: list[dict] = []
     pages = 0
     while url:
         page = get_json(request, url, sleep=sleep)
         pages += 1
-        batch = page.get("macros")
+        batch = page.get(key)
         if not isinstance(batch, list):
-            raise ScrapeError(f"page {pages} has no `macros` list: keys {sorted(page)}")
-        macros.extend(batch)
-        print(f"  page {pages}: {len(batch)} macros ({len(macros)} so far)")
-        if limit and len(macros) >= limit:
-            return macros[:limit], False
+            raise ScrapeError(f"page {pages} has no `{key}` list: keys {sorted(page)}")
+        items.extend(batch)
+        print(f"  page {pages}: {len(batch)} {key} ({len(items)} so far)")
+        if limit and len(items) >= limit:
+            return items[:limit], False
         url = next_page_url(page)
         if url:
             sleep(delay)
-    return macros, True
+    return items, True
+
+
+def list_macros(request, base: str, delay: float, limit: int | None, sleep=time.sleep):
+    return list_resource(request, first_page_url(base), "macros", delay, limit, sleep)
+
+
+def list_groups(request, base: str, delay: float, sleep=time.sleep):
+    groups, _ = list_resource(request, groups_url(base), "groups", delay, None, sleep)
+    return groups
 
 
 def write_json(path: Path, data) -> None:
@@ -264,6 +285,14 @@ def save_macros(out: Path, macros: list[dict], complete: bool, force: bool) -> d
     return {"written": written, "skipped": skipped, "stale": stale}
 
 
+def save_groups(out: Path, groups: list[dict]) -> Path:
+    """Write groups.json in the shape of the groups list response."""
+    out.mkdir(parents=True, exist_ok=True, mode=0o700)
+    path = out / "groups.json"
+    write_json(path, {"groups": groups, "count": len(groups)})
+    return path
+
+
 # --- browser ---------------------------------------------------------------
 
 
@@ -311,6 +340,8 @@ def parse_args(argv):
                     help="Zendesk subdomain (default: %(default)s)")
     ap.add_argument("--out", type=Path, default=DEFAULT_OUT,
                     help="output directory (default: %(default)s)")
+    ap.add_argument("--groups-out", type=Path, default=DEFAULT_GROUPS_OUT,
+                    help="groups output directory (default: %(default)s)")
     ap.add_argument("--profile", type=Path, default=DEFAULT_PROFILE,
                     help="Firefox profile with the session (default: %(default)s)")
     ap.add_argument("--login", action="store_true",
@@ -333,7 +364,8 @@ def main(argv=None) -> int:
         base = f"https://{normalize_subdomain(args.subdomain)}.zendesk.com"
         out = args.out.expanduser().resolve()
         profile = args.profile.expanduser().resolve()
-        for label, path in (("output", out), ("profile", profile)):
+        groups_out = args.groups_out.expanduser().resolve()
+        for label, path in (("output", out), ("profile", profile), ("groups", groups_out)):
             bad = unsafe_location(path, synced_locations())
             if bad:
                 raise ScrapeError(
@@ -354,9 +386,13 @@ def main(argv=None) -> int:
                     raise SessionError("Not signed in. Run: uv run scrape_macros.py --login")
                 print(f"Signed in as {user.get('name')} ({user.get('role')}). Listing macros...")
                 macros, complete = list_macros(ctx.request, base, args.delay, args.limit)
+                print("Listing groups...")
+                groups = list_groups(ctx.request, base, args.delay)
             finally:
                 ctx.close()
 
+        groups_path = save_groups(groups_out, groups)
+        print(f"{len(groups)} groups in {groups_path}")
         result = save_macros(out, macros, complete, args.force)
         print(f"{len(macros)} macros: {result['written']} written, "
               f"{result['skipped']} unchanged, in {out}")

@@ -156,6 +156,21 @@ class Listing(unittest.TestCase):
                            sleep=no_sleep)
 
 
+class Groups(unittest.TestCase):
+    def test_groups_are_listed_and_saved_in_api_shape(self):
+        req = FakeRequest([FakeResponse(200, {"groups": [{"id": 5, "name": "Tier 2"}],
+                                              "meta": {"has_more": False}, "links": {}})])
+        groups = sm.list_groups(req, "https://tbpro.zendesk.com", 0, sleep=no_sleep)
+        self.assertIn("/api/v2/groups.json?exclude_deleted=false", req.urls[0])
+        with tempfile.TemporaryDirectory() as tmp:
+            path = sm.save_groups(Path(tmp) / "groups", groups)
+            self.assertEqual(json.loads(path.read_text()),
+                             {"groups": [{"id": 5, "name": "Tier 2"}], "count": 1})
+
+    def test_refuses_groups_output_in_repository(self):
+        self.assertEqual(sm.main(["--groups-out", str(sm.REPO / "groups-out")]), 1)
+
+
 class Saving(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()

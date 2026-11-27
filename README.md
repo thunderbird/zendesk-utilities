@@ -20,9 +20,19 @@ A macro is a saved set of ticket actions that an agent applies with one click. `
    uv run scrape_macros.py
    ```
 
-The script writes one `<id>.json` file per macro and one `macros.json` file to `~/zendesk-data/macros`. It keeps the browser session in `~/zendesk-data/firefox-profile`. These directories are not in iCloud Drive and not in this repository. If you give an `--out` or `--profile` directory inside this repository, `~/Documents`, `~/Desktop`, or `~/Library/Mobile Documents`, the script stops with an error.
+The script writes one `<id>.json` file per macro and one `macros.json` file to `~/zendesk-data/macros`. It also writes all groups, deleted groups included, to `~/zendesk-data/groups/groups.json`. It keeps the browser session in `~/zendesk-data/firefox-profile`. These directories are not in iCloud Drive and not in this repository. If you give an `--out` or `--profile` directory inside this repository, `~/Documents`, `~/Desktop`, or `~/Library/Mobile Documents`, the script stops with an error.
 
 For a trial run, add `--limit 3`. To rewrite all files, add `--force`. If the session expires, run `--login` again. For all options, run `uv run scrape_macros.py --help`.
+
+## Search the macros
+
+`macro_search.py` is a search web app for the downloaded macros. It runs only on this computer and reads the files in `~/zendesk-data`.
+
+```sh
+uv run macro_search.py --open
+```
+
+The app is at `http://127.0.0.1:8765/`. It searches the titles, descriptions, replies, and tags. You can filter the results by status, by group, and by the ticket field that a macro changes. Each result links to the macro in Zendesk Admin Center. After you download the macros again, restart the app.
 
 ## Tests
 
