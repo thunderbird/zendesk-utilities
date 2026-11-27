@@ -33,6 +33,7 @@ import re
 import sqlite3
 import sys
 import threading
+import unicodedata
 import webbrowser
 from html.parser import HTMLParser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -146,37 +147,154 @@ def group_ids(macro: dict) -> list[int]:
     return list(r.get("ids") or ([r["id"]] if r.get("id") else []))
 
 
-def fts_query(text: str) -> str | None:
-    """Turn what the user typed into a safe FTS5 query.
+# --- query and matching -----------------------------------------------------
+#
+# macro_search.html repeats every function in this section in JavaScript, so
+# that both apps find, rank, and highlight the same way (issue #9). Change both
+# together, and add a case to test_cases/search.json.
 
-    Every word must match (AND). A word matches as a prefix, so "refun" finds
-    "refund". "Double quotes" keep an exact phrase. FTS5 operators and
-    punctuation in the input have no special meaning, because every term
-    goes inside double quotes.
+# A token is a run of letters and digits, as in the SQLite unicode61 tokenizer.
+# Underscores and punctuation separate tokens.
+TOKEN_RE = re.compile(r"[^\W_]+")
+SNIPPET_TOKENS = 24
+
+
+def norm(token: str) -> str:
+    """Lowercase without accents, like unicode61 with remove_diacritics 2."""
+    decomposed = unicodedata.normalize("NFD", token)
+    return "".join(c for c in decomposed if not unicodedata.combining(c)).lower()
+
+
+def query_terms(text: str) -> list[tuple[list[str], bool]]:
+    """What the user typed, as (tokens, prefix) phrases.
+
+    Every phrase must match (AND). A word matches as a prefix, so "refun"
+    finds "refund". "Double quotes" keep an exact phrase.
     """
     terms = []
     for quoted, word in re.findall(r'"([^"]*)"|(\S+)', text):
-        parts = re.findall(r"[^\W_]+", quoted or word)
-        if not parts:
-            continue
-        phrase = '"' + " ".join(parts) + '"'
-        terms.append(phrase if quoted else phrase + "*")
+        parts = TOKEN_RE.findall(quoted or word)
+        if parts:
+            terms.append((parts, not quoted))
+    return terms
+
+
+def fts_query(text: str) -> str | None:
+    """The same phrases as a safe FTS5 query.
+
+    FTS5 operators and punctuation in the input have no special meaning,
+    because every phrase goes inside double quotes.
+    """
+    terms = ['"' + " ".join(parts) + '"' + ("*" if prefix else "") for parts, prefix in query_terms(text)]
     return " ".join(terms) or None
+
+
+def tokens_with_spans(text: str) -> list[tuple[int, int, str]]:
+    return [(m.start(), m.end(), norm(m.group())) for m in TOKEN_RE.finditer(text)]
+
+
+def phrase_starts(tokens: list[str], phrase: list[str], prefix: bool) -> list[int]:
+    """Token positions where the phrase starts. With `prefix`, the last
+    phrase token only has to start the document token, as in FTS5."""
+    n = len(phrase)
+    starts = []
+    for i in range(len(tokens) - n + 1):
+        ok = all(tokens[i + k] == phrase[k] for k in range(n - 1))
+        last = tokens[i + n - 1]
+        if ok and (last.startswith(phrase[-1]) if prefix else last == phrase[-1]):
+            starts.append(i)
+    return starts
+
+
+def hit_ranges(toks, terms) -> list[tuple[int, int]]:
+    """Merged (first, last) token index ranges of all phrase matches."""
+    words = [t[2] for t in toks]
+    ranges = sorted((i, i + len(parts) - 1)
+                    for parts, prefix in terms
+                    for i in phrase_starts(words, [norm(p) for p in parts], prefix))
+    merged: list[list[int]] = []
+    for a, b in ranges:
+        if merged and a <= merged[-1][1] + 1:
+            merged[-1][1] = max(merged[-1][1], b)
+        else:
+            merged.append([a, b])
+    return [(a, b) for a, b in merged]
+
+
+def _mark(text: str, toks, ranges, first: int, last: int, cs: int, ce: int) -> str:
+    out, pos = [], cs
+    for a, b in ranges:
+        a, b = max(a, first), min(b, last)
+        if a > b:
+            continue
+        s, e = toks[a][0], toks[b][1]
+        out += [text[pos:s], HIT_START, text[s:e], HIT_END]
+        pos = e
+    out.append(text[pos:ce])
+    return "".join(out)
+
+
+def _space_before(text: str, pos: int) -> int:
+    while pos > 0 and not text[pos - 1].isspace():
+        pos -= 1
+    return pos
+
+
+def _space_after(text: str, pos: int) -> int:
+    while pos < len(text) and not text[pos].isspace():
+        pos += 1
+    return pos
+
+
+def highlight(text: str, terms) -> str:
+    """The whole text, with hit markers around every match."""
+    toks = tokens_with_spans(text)
+    return _mark(text, toks, hit_ranges(toks, terms), 0, len(toks) - 1, 0, len(text))
+
+
+def snippet(text: str, terms, size: int = SNIPPET_TOKENS) -> str:
+    """A window of `size` tokens with the most matches, with hit markers.
+
+    The window starts 3 tokens before a match, so the reader sees some
+    context. Near the end of the text, the window moves back, so it always
+    has `size` tokens when the text has them. "…" marks text that the
+    window leaves out.
+    """
+    toks = tokens_with_spans(text)
+    if not toks:
+        return ""
+    ranges = hit_ranges(toks, terms)
+    hits = sorted({i for a, b in ranges for i in range(a, b + 1)})
+    start, best = 0, -1
+    for s in sorted({max(0, h - 3) for h in hits}):
+        count = sum(1 for h in hits if s <= h < s + size)
+        if count > best:
+            start, best = s, count
+    start = max(0, min(start, len(toks) - size))  # a short text shows whole
+    end = min(len(toks), start + size)
+    # Cut at spaces, not inside a word such as "you'd" or "{{ticket.requester.first_name}}".
+    cs = 0 if start == 0 else _space_before(text, toks[start][0])
+    ce = len(text) if end == len(toks) else _space_after(text, toks[end - 1][1])
+    body = _mark(text, toks, ranges, start, end - 1, cs, ce)
+    return ("…" if start > 0 else "") + body + ("…" if end < len(toks) else "")
 
 
 # --- index -----------------------------------------------------------------
 
 
 class MacroIndex:
-    def __init__(self, macros: list[dict], groups: list[dict], subdomain: str = DEFAULT_SUBDOMAIN):
+    def __init__(self, macros: list[dict], groups: list[dict], subdomain: str = DEFAULT_SUBDOMAIN,
+                 exported_at: str | None = None):
         self.subdomain = subdomain
+        self.exported_at = exported_at
         self.macros = {m["id"]: m for m in macros}
-        self.order = sorted(self.macros, key=lambda i: self.macros[i].get("title", "").casefold())
+        # lower(), not casefold(): JavaScript has toLowerCase() only.
+        self.order = sorted(self.macros, key=lambda i: (self.macros[i].get("title") or "").lower())
         self.group_names = {
             g["id"]: (g.get("name") or str(g["id"])) + (" (deleted)" if g.get("deleted") else "")
             for g in groups if "id" in g
         }
-        self.replies = {i: reply_text(m) for i, m in self.macros.items()}
+        self.replies = {i: clean(reply_text(m)) for i, m in self.macros.items()}
 
         self.db = sqlite3.connect(":memory:", check_same_thread=False)
         self.lock = threading.Lock()  # one sqlite connection, many server threads
@@ -188,7 +306,7 @@ class MacroIndex:
         self.db.executemany(
             "INSERT INTO fts (rowid, title, description, reply, tags) VALUES (?, ?, ?, ?, ?)",
             [(i, clean(m.get("title") or ""), clean(m.get("description") or ""),
-              clean(self.replies[i]), clean(" ".join(tags(m))))
+              self.replies[i], clean(" ".join(tags(m))))
              for i, m in self.macros.items()],
         )
 
@@ -217,7 +335,7 @@ class MacroIndex:
                 counts[g] = counts.get(g, 0) + 1
         choices = [("none", "All agents (no restriction)", unrestricted)]
         choices += sorted(((str(g), self.group_name(g), n) for g, n in counts.items()),
-                          key=lambda c: c[1].casefold())
+                          key=lambda c: c[1].lower())
         return choices
 
     def field_choices(self) -> list[tuple[str, int]]:
@@ -232,17 +350,19 @@ class MacroIndex:
     def search(self, q: str = "", status: str = "all", group: str = "", field: str = "") -> list[dict]:
         query = fts_query(q)
         if query:
+            terms = query_terms(q)
             with self.lock:
-                rows = self.db.execute(
-                    "SELECT rowid, highlight(fts, 0, ?, ?), snippet(fts, 2, ?, ?, '…', 24) "
-                    "FROM fts WHERE fts MATCH ? ORDER BY bm25(fts, ?, ?, ?, ?)",
-                    (HIT_START, HIT_END, HIT_START, HIT_END, query, *WEIGHTS),
-                ).fetchall()
+                ids = [r[0] for r in self.db.execute(
+                    "SELECT rowid FROM fts WHERE fts MATCH ? ORDER BY bm25(fts, ?, ?, ?, ?), rowid",
+                    (query, *WEIGHTS),
+                ).fetchall()]
+            rows = [(i, highlight(clean(self.macros[i].get("title") or ""), terms),
+                     snippet(self.replies[i], terms)) for i in ids]
         else:
             rows = [(i, self.macros[i].get("title", ""), shorten(self.replies[i])) for i in self.order]
 
         results = []
-        for macro_id, title, snippet in rows:
+        for macro_id, title, snip in rows:
             m = self.macros[macro_id]
             if status == "active" and not m.get("active"):
                 continue
@@ -254,8 +374,16 @@ class MacroIndex:
                 continue
             if field and field not in {a.get("field") for a in actions(m)}:
                 continue
-            results.append({"id": macro_id, "title": title, "snippet": snippet, "macro": m})
+            results.append({"id": macro_id, "title": title, "snippet": snip, "macro": m})
         return results
+
+
+def export_label(exported_at) -> str:
+    """ "Macros exported 2026-11-27 18:00 UTC", or "" without a usable date."""
+    value = exported_at if isinstance(exported_at, str) else ""
+    if not re.match(r"^\d{4}-\d\d-\d\dT\d\d:\d\d", value):
+        return ""
+    return f"Macros exported {value[:10]} {value[11:16]} UTC"
 
 
 def shorten(text: str, limit: int = 220) -> str:
@@ -398,7 +526,10 @@ def render_search(index: MacroIndex, params: dict[str, str]) -> str:
         count += f" (first {len(shown)} shown)"
     legend = ('<p class="legend"><span class="dc">{{pink}}</span> dynamic content · '
               '<span class="fill">[[orange]]</span> replace before sending</p>')
-    body = (f'<h1>Zendesk macros</h1>{form}<p class="count">{count}</p>{legend}' + "".join(items))
+    exported = export_label(index.exported_at)
+    if exported:
+        count += f" · {exported}"
+    body = (f'<h1>Zendesk macros</h1>{form}<p class="count">{esc(count)}</p>{legend}' + "".join(items))
     return page(f"{q} - Zendesk macros" if q else "Zendesk macros", body)
 
 
@@ -478,12 +609,15 @@ def make_server(index: MacroIndex, port: int = DEFAULT_PORT) -> ThreadingHTTPSer
 # --- entry point -----------------------------------------------------------
 
 
-def load_list(path: Path, key: str) -> list[dict]:
+def load_document(path: Path, key: str) -> dict:
     data = json.loads(path.read_text(encoding="utf-8"))
-    items = data.get(key)
-    if not isinstance(items, list):
+    if not isinstance(data, dict) or not isinstance(data.get(key), list):
         raise ValueError(f"{path} has no `{key}` list")
-    return items
+    return data
+
+
+def load_list(path: Path, key: str) -> list[dict]:
+    return load_document(path, key)[key]
 
 
 def normalize_subdomain(value: str) -> str:
@@ -508,7 +642,8 @@ def main(argv=None) -> int:
     groups_path = data / "groups" / "groups.json"
     try:
         subdomain = normalize_subdomain(args.subdomain)
-        macros = load_list(macros_path, "macros")
+        macros_doc = load_document(macros_path, "macros")
+        macros = macros_doc["macros"]
     except FileNotFoundError:
         print(f"error: {macros_path} not found. Run: uv run scrape_macros.py", file=sys.stderr)
         return 1
@@ -522,7 +657,7 @@ def main(argv=None) -> int:
               "Run uv run scrape_macros.py to download the groups.", file=sys.stderr)
         groups = []
 
-    index = MacroIndex(macros, groups, subdomain)
+    index = MacroIndex(macros, groups, subdomain, macros_doc.get("exported_at"))
     try:
         server = make_server(index, args.port)
     except OSError as exc:

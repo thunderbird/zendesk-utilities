@@ -34,6 +34,16 @@ uv run macro_search.py --open
 
 The app is at `http://127.0.0.1:8765/`. It searches the titles, descriptions, replies, and tags. You can filter the results by status, by group, and by the ticket field that a macro changes. Each result links to the macro in Zendesk Admin Center. After you download the macros again, restart the app.
 
+## Share the search with colleagues
+
+`macro_search.html` is the same search app as one HTML file. It runs in any modern browser on Windows, macOS, and Linux, with nothing to install.
+
+1. Send your colleague `macro_search.html` from the latest GitHub release, together with `~/zendesk-data/macros/macros.json` and `~/zendesk-data/groups/groups.json`. Use Thundermail Send or another secure channel for the two JSON files.
+2. The colleague opens `macro_search.html` in a browser.
+3. The colleague drags the two JSON files onto the page, or chooses them with the file picker.
+
+The page sends nothing over the network, and it keeps the macros only in memory. When the tab closes, the data is gone. The page shows when you exported the files, for example "Macros exported 2026-11-27 18:24 UTC". To send newer data, run `uv run scrape_macros.py` again.
+
 ## Create a new macro
 
 `new_macro.py` creates a new macro that follows the team's macro creation process. You give the reply text, the brand, the name, and the description.
@@ -88,4 +98,10 @@ The tests use no browser and no network.
 
 ```sh
 uv run python -m unittest
+```
+
+The tests of `macro_search.html` need a browser. They run in headless Firefox:
+
+```sh
+uv run --with playwright python -m unittest test_macro_search_html
 ```
