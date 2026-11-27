@@ -21,7 +21,10 @@ fetch() inside a page. Context requests share the cookie jar but do not depend
 on page navigation, so a page that moves to the login screen cannot break them.
 This is the lesson from thunderbird/sumo-linter tools/scrape/scrape.mjs.
 
-  uv run scrape_macros.py --install-browser   # once: download Playwright Firefox
+The browser is the installed Firefox release (/Applications/Firefox.app),
+driven over WebDriver BiDi with Playwright's `moz-firefox` channel. Playwright's
+own bundled Firefox is a patched build that calls itself Nightly; we do not use it.
+
   uv run scrape_macros.py --login             # sign in by hand in Firefox
   uv run scrape_macros.py                     # download all shared macros
   uv run scrape_macros.py --limit 3           # trial run
@@ -38,7 +41,6 @@ import argparse
 import json
 import os
 import re
-import subprocess
 import sys
 import time
 from pathlib import Path
@@ -49,6 +51,7 @@ DEFAULT_DATA = HOME / "zendesk-data"
 DEFAULT_OUT = DEFAULT_DATA / "macros"
 DEFAULT_PROFILE = DEFAULT_DATA / "firefox-profile"
 DEFAULT_SUBDOMAIN = "tbpro"
+FIREFOX_CHANNEL = "moz-firefox"  # the monthly release, not Nightly or Beta
 
 PAGE_SIZE = 100  # the maximum for cursor pagination
 LOGIN_TIMEOUT_S = 600
@@ -268,13 +271,13 @@ def open_context(playwright, profile: Path, headless: bool):
     profile.mkdir(parents=True, exist_ok=True, mode=0o700)
     try:
         return playwright.firefox.launch_persistent_context(
-            str(profile), headless=headless
+            str(profile), channel=FIREFOX_CHANNEL, headless=headless
         )
     except Exception as exc:  # Playwright raises a plain Error here
-        if "Executable doesn't exist" in str(exc):
+        if "Executable doesn't exist" in str(exc) or "not found" in str(exc).lower():
             raise ScrapeError(
-                "Playwright Firefox is not installed. "
-                "Run: uv run scrape_macros.py --install-browser"
+                "Firefox is not installed. Install the release version from "
+                "https://www.mozilla.org/firefox/ into /Applications."
             ) from exc
         raise
 
@@ -312,8 +315,6 @@ def parse_args(argv):
                     help="Firefox profile with the session (default: %(default)s)")
     ap.add_argument("--login", action="store_true",
                     help="open Firefox and wait for you to sign in")
-    ap.add_argument("--install-browser", action="store_true",
-                    help="download the Firefox build that Playwright drives")
     ap.add_argument("--limit", type=int, default=None,
                     help="stop after N macros (trial run; macros.json is not written)")
     ap.add_argument("--force", action="store_true",
@@ -327,11 +328,6 @@ def parse_args(argv):
 
 def main(argv=None) -> int:
     args = parse_args(argv)
-
-    if args.install_browser:
-        # Runs inside this script's own environment, so the browser build
-        # always matches the Playwright version that drives it.
-        return subprocess.run([sys.executable, "-m", "playwright", "install", "firefox"]).returncode
 
     try:
         base = f"https://{normalize_subdomain(args.subdomain)}.zendesk.com"

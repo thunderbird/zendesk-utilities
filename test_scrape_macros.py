@@ -196,6 +196,23 @@ class Saving(unittest.TestCase):
             sm.save_macros(self.out, [{"title": "x"}], complete=True, force=False)
 
 
+class Browser(unittest.TestCase):
+    def test_uses_installed_firefox_release(self):
+        calls = []
+
+        class FakeFirefox:
+            def launch_persistent_context(self, profile, **kw):
+                calls.append(kw)
+                return "ctx"
+
+        class FakePlaywright:
+            firefox = FakeFirefox()
+
+        with tempfile.TemporaryDirectory() as tmp:
+            sm.open_context(FakePlaywright(), Path(tmp) / "profile", headless=True)
+        self.assertEqual(calls, [{"channel": "moz-firefox", "headless": True}])
+
+
 class Main(unittest.TestCase):
     def test_refuses_output_in_repository(self):
         rc = sm.main(["--out", str(sm.REPO / "macros-out")])
