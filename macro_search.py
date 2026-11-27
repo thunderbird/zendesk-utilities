@@ -73,7 +73,9 @@ class _TextExtractor(HTMLParser):
         if tag in self.SKIP:
             self.skipping += 1
         elif tag in self.BLOCK:
-            self.parts.append("\n")
+            # A <p> inside a list item stays on the "- " line.
+            if not (self.parts and self.parts[-1] == "- "):
+                self.parts.append("\n")
             if tag == "li":
                 self.parts.append("- ")
 

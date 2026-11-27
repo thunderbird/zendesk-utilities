@@ -49,6 +49,8 @@ class Text(unittest.TestCase):
 
     def test_list_items(self):
         self.assertEqual(ms.html_to_text("<ul><li>one</li><li>two</li></ul>"), "- one\n\n- two")
+        self.assertEqual(ms.html_to_text("<ul><li><p>one</p></li><li><p>two</p></li></ul>"),
+                         "- one\n\n- two")
 
     def test_reply_text_and_tags(self):
         self.assertEqual(ms.reply_text(MACROS[0]), "We sent your refund.")

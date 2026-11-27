@@ -34,6 +34,29 @@ uv run macro_search.py --open
 
 The app is at `http://127.0.0.1:8765/`. It searches the titles, descriptions, replies, and tags. You can filter the results by status, by group, and by the ticket field that a macro changes. Each result links to the macro in Zendesk Admin Center. After you download the macros again, restart the app.
 
+## Create a new macro
+
+`new_macro.py` creates a new macro from a Knowledge Base article, another web page, the clipboard, or a file. It follows the team's macro creation process.
+
+```sh
+uv run new_macro.py --brand thundermail \
+    --name "Thundermail::Accounts - Macro name" \
+    --description "Use when ... Example ticket: #1234" \
+    https://support.tb.pro/hc/en-us/articles/<id>
+```
+
+Instead of the URL, you can give `--clipboard` (macOS) or `--file reply.html`. The brands are `thundermail`, `donors`, and `tfa`. Donor Support has no team template yet, so for `donors` you must also give `--template <macro ID>`.
+
+The script does these steps:
+
+1. It lists similar macros. If one of them already covers the case, stop.
+2. It removes `en-us` from Knowledge Base links and adds the template greeting.
+3. It writes a draft to `~/zendesk-data/drafts/` and checks it against the process rules.
+4. After you type `create`, it clones the brand template in Admin Center, fills in the form, and clicks Create.
+5. It downloads the new macro and compares it with the draft.
+
+To stop before Admin Center, add `--dry-run`. After the script finishes, test the macro on a new ticket, delete the test ticket, and ask for a review.
+
 ## Tests
 
 The tests use no browser and no network.
