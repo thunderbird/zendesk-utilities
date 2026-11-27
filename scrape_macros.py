@@ -38,6 +38,7 @@ that iCloud can sync.
 from __future__ import annotations
 
 import argparse
+import datetime as dt
 import json
 import os
 import re
@@ -258,7 +259,8 @@ def needs_write(path: Path, macro: dict, force: bool) -> bool:
     return old != macro
 
 
-def save_macros(out: Path, macros: list[dict], complete: bool, force: bool) -> dict:
+def save_macros(out: Path, macros: list[dict], complete: bool, force: bool,
+                exported_at: str | None = None) -> dict:
     """Write <id>.json per macro, and macros.json for a complete listing."""
     out.mkdir(parents=True, exist_ok=True, mode=0o700)
     written = skipped = 0
@@ -276,7 +278,8 @@ def save_macros(out: Path, macros: list[dict], complete: bool, force: bool) -> d
     if complete:
         # Same shape as the list response. Pagination links are dropped
         # because they point at a session-specific cursor.
-        write_json(out / "macros.json", {"macros": macros, "count": len(macros)})
+        write_json(out / "macros.json", {"macros": macros, "count": len(macros),
+                                         "exported_at": exported_at or utc_now()})
         listed = {f"{m['id']}.json" for m in macros}
         stale = sorted(
             p.name for p in out.glob("*.json")
@@ -285,11 +288,19 @@ def save_macros(out: Path, macros: list[dict], complete: bool, force: bool) -> d
     return {"written": written, "skipped": skipped, "stale": stale}
 
 
-def save_groups(out: Path, groups: list[dict]) -> Path:
-    """Write groups.json in the shape of the groups list response."""
+def utc_now() -> str:
+    return dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def save_groups(out: Path, groups: list[dict], exported_at: str | None = None) -> Path:
+    """Write groups.json in the shape of the groups list response.
+
+    `exported_at` is not part of the API response. It tells the search apps
+    and the colleagues who get the file how old the data is (issue #9).
+    """
     out.mkdir(parents=True, exist_ok=True, mode=0o700)
     path = out / "groups.json"
-    write_json(path, {"groups": groups, "count": len(groups)})
+    write_json(path, {"groups": groups, "count": len(groups), "exported_at": exported_at or utc_now()})
     return path
 
 
@@ -385,15 +396,16 @@ def main(argv=None) -> int:
                 if not user:
                     raise SessionError("Not signed in. Run: uv run scrape_macros.py --login")
                 print(f"Signed in as {user.get('name')} ({user.get('role')}). Listing macros...")
+                exported_at = utc_now()
                 macros, complete = list_macros(ctx.request, base, args.delay, args.limit)
                 print("Listing groups...")
                 groups = list_groups(ctx.request, base, args.delay)
             finally:
                 ctx.close()
 
-        groups_path = save_groups(groups_out, groups)
+        groups_path = save_groups(groups_out, groups, exported_at)
         print(f"{len(groups)} groups in {groups_path}")
-        result = save_macros(out, macros, complete, args.force)
+        result = save_macros(out, macros, complete, args.force, exported_at)
         print(f"{len(macros)} macros: {result['written']} written, "
               f"{result['skipped']} unchanged, in {out}")
         if not complete:

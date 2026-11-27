@@ -1,0 +1,1072 @@
+{
+ "comment": "Shared test cases for macro_search.py and macro_search.html (issue #9). The macros are made up. Regenerate the expected values only after you check that a change is intended.",
+ "exported_at": "2026-11-27T18:00:00Z",
+ "macros": [
+  {
+   "id": 1,
+   "title": "Donation::Refund request",
+   "raw_title": "Donation::Refund request",
+   "description": "Use for refund questions",
+   "active": true,
+   "default": false,
+   "position": 1,
+   "actions": [
+    {
+     "field": "comment_value_html",
+     "value": "<p>Hello {{ticket.requester.first_name}},</p><p>We sent your <b>refund</b> today.</p>"
+    },
+    {
+     "field": "current_tags",
+     "value": "macro_donors_refund donor"
+    }
+   ],
+   "restriction": {
+    "type": "Group",
+    "id": 100,
+    "ids": [
+     100
+    ]
+   },
+   "created_at": "2026-01-01T00:00:00Z",
+   "updated_at": "2026-01-02T00:00:00Z",
+   "url": "https://tbpro.zendesk.com/api/v2/macros/1.json"
+  },
+  {
+   "id": 2,
+   "title": "Thunderbird::Translate emails",
+   "raw_title": "Thunderbird::Translate emails",
+   "description": "",
+   "active": true,
+   "default": false,
+   "position": 2,
+   "actions": [
+    {
+     "field": "comment_value_html",
+     "value": "<p>Open the add-ons page.</p><p>Search for a translator.</p>"
+    },
+    {
+     "field": "current_tags",
+     "value": "tb_translate"
+    }
+   ],
+   "restriction": null,
+   "created_at": "2026-01-01T00:00:00Z",
+   "updated_at": "2026-01-02T00:00:00Z",
+   "url": "https://tbpro.zendesk.com/api/v2/macros/2.json"
+  },
+  {
+   "id": 3,
+   "title": "Old greeting",
+   "raw_title": "Old greeting",
+   "description": "",
+   "active": false,
+   "default": false,
+   "position": 3,
+   "actions": [
+    {
+     "field": "comment_value_html",
+     "value": "<p>Hello, the refund team here.</p>"
+    },
+    {
+     "field": "priority",
+     "value": "high"
+    }
+   ],
+   "restriction": null,
+   "created_at": "2026-01-01T00:00:00Z",
+   "updated_at": "2026-01-02T00:00:00Z",
+   "url": "https://tbpro.zendesk.com/api/v2/macros/3.json"
+  },
+  {
+   "id": 4,
+   "title": "Café closing",
+   "raw_title": "Café closing",
+   "description": "",
+   "active": true,
+   "default": false,
+   "position": 4,
+   "actions": [
+    {
+     "field": "comment_value",
+     "value": "Bye for now"
+    }
+   ],
+   "restriction": {
+    "type": "Group",
+    "id": 999,
+    "ids": [
+     999
+    ]
+   },
+   "created_at": "2026-01-01T00:00:00Z",
+   "updated_at": "2026-01-02T00:00:00Z",
+   "url": "https://tbpro.zendesk.com/api/v2/macros/4.json"
+  },
+  {
+   "id": 5,
+   "title": "Thundermail::Aliases - Identity setup",
+   "raw_title": "Thundermail::Aliases - Identity setup",
+   "description": "",
+   "active": true,
+   "default": false,
+   "position": 5,
+   "actions": [
+    {
+     "field": "comment_value_html",
+     "value": "<p>{{dc.signature_block}} Hello {{ticket.requester.first_name}},</p><p>Thanks for writing to us about your account. We read every message and we answer as soon as we can. Before you change anything, please make a backup of your profile and your messages. Then open the account settings and look at the list of addresses that belong to the account. Each alias needs its own identity in Thunderbird Desktop, not a separate account, so that replies go out from the right address in [[COUNTRY]] and everywhere else.</p><p>If you still have problems after that, reply to this message and tell us what you see.</p>"
+    },
+    {
+     "field": "current_tags",
+     "value": "macro_thundermail_aliases"
+    }
+   ],
+   "restriction": {
+    "type": "Group",
+    "id": 100,
+    "ids": [
+     100,
+     200
+    ]
+   },
+   "created_at": "2026-01-01T00:00:00Z",
+   "updated_at": "2026-01-02T00:00:00Z",
+   "url": "https://tbpro.zendesk.com/api/v2/macros/5.json"
+  },
+  {
+   "id": 6,
+   "title": "Tie::A - Same",
+   "raw_title": "Tie::A - Same",
+   "description": "",
+   "active": true,
+   "default": false,
+   "position": 6,
+   "actions": [
+    {
+     "field": "comment_value_html",
+     "value": "<p>Unique zebra word.</p>"
+    }
+   ],
+   "restriction": null,
+   "created_at": "2026-01-01T00:00:00Z",
+   "updated_at": "2026-01-02T00:00:00Z",
+   "url": "https://tbpro.zendesk.com/api/v2/macros/6.json"
+  },
+  {
+   "id": 7,
+   "title": "Tie::B - Same",
+   "raw_title": "Tie::B - Same",
+   "description": "",
+   "active": true,
+   "default": false,
+   "position": 7,
+   "actions": [
+    {
+     "field": "comment_value_html",
+     "value": "<p>Unique zebra word.</p>"
+    }
+   ],
+   "restriction": null,
+   "created_at": "2026-01-01T00:00:00Z",
+   "updated_at": "2026-01-02T00:00:00Z",
+   "url": "https://tbpro.zendesk.com/api/v2/macros/7.json"
+  },
+  {
+   "id": 8,
+   "title": "Lists::Nested - Steps",
+   "raw_title": "Lists::Nested - Steps",
+   "description": "",
+   "active": true,
+   "default": false,
+   "position": 8,
+   "actions": [
+    {
+     "field": "comment_value_html",
+     "value": "<ul><li><p>Open&nbsp;settings</p></li><li>Pick <i>one</i></li></ul><script>alert(1)</script>"
+    },
+    {
+     "field": "group_id",
+     "value": "200"
+    }
+   ],
+   "restriction": null,
+   "created_at": "2026-01-01T00:00:00Z",
+   "updated_at": "2026-01-02T00:00:00Z",
+   "url": "https://tbpro.zendesk.com/api/v2/macros/8.json"
+  },
+  {
+   "id": 9,
+   "title": "<b>Escape</b> & \"quotes\" 'single'",
+   "raw_title": "<b>Escape</b> & \"quotes\" 'single'",
+   "description": "",
+   "active": true,
+   "default": false,
+   "position": 9,
+   "actions": [
+    {
+     "field": "comment_value_html",
+     "value": "<p>&lt;img src=x onerror=alert(1)&gt; [[DATE]]</p>"
+    }
+   ],
+   "restriction": null,
+   "created_at": "2026-01-01T00:00:00Z",
+   "updated_at": "2026-01-02T00:00:00Z",
+   "url": "https://tbpro.zendesk.com/api/v2/macros/9.json"
+  },
+  {
+   "id": 10,
+   "title": "Cut::Words - Apostrophe",
+   "raw_title": "Cut::Words - Apostrophe",
+   "description": "",
+   "active": true,
+   "default": false,
+   "position": 10,
+   "actions": [
+    {
+     "field": "comment_value_html",
+     "value": "<p>word0 word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12 word13 word14 word15 word16 word17 word18 word19 word20 word21 word22 word23 word24 word25 word26 word27 word28 word29 we know you'd like a zebrafish now, and {{ticket.requester.first_name}} too</p>"
+    }
+   ],
+   "restriction": null,
+   "created_at": "2026-01-01T00:00:00Z",
+   "updated_at": "2026-01-02T00:00:00Z",
+   "url": "https://tbpro.zendesk.com/api/v2/macros/10.json"
+  }
+ ],
+ "groups": [
+  {
+   "id": 100,
+   "name": "Donor Support"
+  },
+  {
+   "id": 200,
+   "name": "Tier 2"
+  },
+  {
+   "id": 999,
+   "name": "Old team",
+   "deleted": true
+  }
+ ],
+ "search": [
+  {
+   "q": "",
+   "status": "all",
+   "group": "",
+   "field": "",
+   "ids": [
+    9,
+    4,
+    10,
+    1,
+    8,
+    3,
+    2,
+    5,
+    6,
+    7
+   ],
+   "results": [
+    {
+     "id": 9,
+     "title_html": "&lt;b&gt;Escape&lt;/b&gt; &amp; &quot;quotes&quot; &#x27;single&#x27;",
+     "snippet_html": "&lt;img src=x onerror=alert(1)&gt; <span class=\"fill\">[[DATE]]</span>"
+    },
+    {
+     "id": 4,
+     "title_html": "Café closing",
+     "snippet_html": "Bye for now"
+    },
+    {
+     "id": 10,
+     "title_html": "Cut::Words - Apostrophe",
+     "snippet_html": "word0 word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12 word13 word14 word15 word16 word17 word18 word19 word20 word21 word22 word23 word24 word25 word26 word27 word28 word29 we know you&#x27;d like …"
+    },
+    {
+     "id": 1,
+     "title_html": "Donation::Refund request",
+     "snippet_html": "Hello <span class=\"dc\">{{ticket.requester.first_name}}</span>, We sent your refund today."
+    },
+    {
+     "id": 8,
+     "title_html": "Lists::Nested - Steps",
+     "snippet_html": "- Open settings - Pick one"
+    },
+    {
+     "id": 3,
+     "title_html": "Old greeting",
+     "snippet_html": "Hello, the refund team here."
+    },
+    {
+     "id": 2,
+     "title_html": "Thunderbird::Translate emails",
+     "snippet_html": "Open the add-ons page. Search for a translator."
+    },
+    {
+     "id": 5,
+     "title_html": "Thundermail::Aliases - Identity setup",
+     "snippet_html": "<span class=\"dc\">{{dc.signature_block}}</span> Hello <span class=\"dc\">{{ticket.requester.first_name}}</span>, Thanks for writing to us about your account. We read every message and we answer as soon as we can. Before you change anything, please make a backup of your …"
+    },
+    {
+     "id": 6,
+     "title_html": "Tie::A - Same",
+     "snippet_html": "Unique zebra word."
+    },
+    {
+     "id": 7,
+     "title_html": "Tie::B - Same",
+     "snippet_html": "Unique zebra word."
+    }
+   ]
+  },
+  {
+   "q": "refund",
+   "status": "all",
+   "group": "",
+   "field": "",
+   "ids": [
+    1,
+    3
+   ],
+   "results": [
+    {
+     "id": 1,
+     "title_html": "Donation::<mark>Refund</mark> request",
+     "snippet_html": "Hello <span class=\"dc\">{{ticket.requester.first_name}}</span>,\n\nWe sent your <mark>refund</mark> today."
+    },
+    {
+     "id": 3,
+     "title_html": "Old greeting",
+     "snippet_html": "Hello, the <mark>refund</mark> team here."
+    }
+   ]
+  },
+  {
+   "q": "refu",
+   "status": "all",
+   "group": "",
+   "field": "",
+   "ids": [
+    1,
+    3
+   ],
+   "results": [
+    {
+     "id": 1,
+     "title_html": "Donation::<mark>Refund</mark> request",
+     "snippet_html": "Hello <span class=\"dc\">{{ticket.requester.first_name}}</span>,\n\nWe sent your <mark>refund</mark> today."
+    },
+    {
+     "id": 3,
+     "title_html": "Old greeting",
+     "snippet_html": "Hello, the <mark>refund</mark> team here."
+    }
+   ]
+  },
+  {
+   "q": "REFUND",
+   "status": "all",
+   "group": "",
+   "field": "",
+   "ids": [
+    1,
+    3
+   ],
+   "results": [
+    {
+     "id": 1,
+     "title_html": "Donation::<mark>Refund</mark> request",
+     "snippet_html": "Hello <span class=\"dc\">{{ticket.requester.first_name}}</span>,\n\nWe sent your <mark>refund</mark> today."
+    },
+    {
+     "id": 3,
+     "title_html": "Old greeting",
+     "snippet_html": "Hello, the <mark>refund</mark> team here."
+    }
+   ]
+  },
+  {
+   "q": "cafe",
+   "status": "all",
+   "group": "",
+   "field": "",
+   "ids": [
+    4
+   ],
+   "results": [
+    {
+     "id": 4,
+     "title_html": "<mark>Café</mark> closing",
+     "snippet_html": "Bye for now"
+    }
+   ]
+  },
+  {
+   "q": "tb_translate",
+   "status": "all",
+   "group": "",
+   "field": "",
+   "ids": [
+    2
+   ],
+   "results": [
+    {
+     "id": 2,
+     "title_html": "Thunderbird::Translate emails",
+     "snippet_html": "Open the add-ons page.\n\nSearch for a translator."
+    }
+   ]
+  },
+  {
+   "q": "\"add ons page\"",
+   "status": "all",
+   "group": "",
+   "field": "",
+   "ids": [
+    2
+   ],
+   "results": [
+    {
+     "id": 2,
+     "title_html": "Thunderbird::Translate emails",
+     "snippet_html": "Open the <mark>add-ons page</mark>.\n\nSearch for a translator."
+    }
+   ]
+  },
+  {
+   "q": "\"ons add\"",
+   "status": "all",
+   "group": "",
+   "field": "",
+   "ids": [],
+   "results": []
+  },
+  {
+   "q": "hello",
+   "status": "all",
+   "group": "",
+   "field": "",
+   "ids": [
+    3,
+    1,
+    5
+   ],
+   "results": [
+    {
+     "id": 3,
+     "title_html": "Old greeting",
+     "snippet_html": "<mark>Hello</mark>, the refund team here."
+    },
+    {
+     "id": 1,
+     "title_html": "Donation::Refund request",
+     "snippet_html": "<mark>Hello</mark> <span class=\"dc\">{{ticket.requester.first_name}}</span>,\n\nWe sent your refund today."
+    },
+    {
+     "id": 5,
+     "title_html": "Thundermail::Aliases - Identity setup",
+     "snippet_html": "<span class=\"dc\">{{dc.signature_block}}</span> <mark>Hello</mark> <span class=\"dc\">{{ticket.requester.first_name}}</span>,\n\nThanks for writing to us about your account. We read every message and we answer as…"
+    }
+   ]
+  },
+  {
+   "q": "hello refund",
+   "status": "all",
+   "group": "",
+   "field": "",
+   "ids": [
+    1,
+    3
+   ],
+   "results": [
+    {
+     "id": 1,
+     "title_html": "Donation::<mark>Refund</mark> request",
+     "snippet_html": "<mark>Hello</mark> <span class=\"dc\">{{ticket.requester.first_name}}</span>,\n\nWe sent your <mark>refund</mark> today."
+    },
+    {
+     "id": 3,
+     "title_html": "Old greeting",
+     "snippet_html": "<mark>Hello</mark>, the <mark>refund</mark> team here."
+    }
+   ]
+  },
+  {
+   "q": "zebra",
+   "status": "all",
+   "group": "",
+   "field": "",
+   "ids": [
+    6,
+    7,
+    10
+   ],
+   "results": [
+    {
+     "id": 6,
+     "title_html": "Tie::A - Same",
+     "snippet_html": "Unique <mark>zebra</mark> word."
+    },
+    {
+     "id": 7,
+     "title_html": "Tie::B - Same",
+     "snippet_html": "Unique <mark>zebra</mark> word."
+    },
+    {
+     "id": 10,
+     "title_html": "Cut::Words - Apostrophe",
+     "snippet_html": "…word20 word21 word22 word23 word24 word25 word26 word27 word28 word29 we know you&#x27;d like a <mark>zebrafish</mark> now, and <span class=\"dc\">{{ticket.requester.first_name}}</span> too"
+    }
+   ]
+  },
+  {
+   "q": "identity",
+   "status": "all",
+   "group": "",
+   "field": "",
+   "ids": [
+    5
+   ],
+   "results": [
+    {
+     "id": 5,
+     "title_html": "Thundermail::Aliases - <mark>Identity</mark> setup",
+     "snippet_html": "…needs its own <mark>identity</mark> in Thunderbird Desktop, not a separate account, so that replies go out from the right address in <span class=\"fill\">[[COUNTRY]]</span> and everywhere…"
+    }
+   ]
+  },
+  {
+   "q": "thunderbird desktop",
+   "status": "all",
+   "group": "",
+   "field": "",
+   "ids": [
+    5
+   ],
+   "results": [
+    {
+     "id": 5,
+     "title_html": "Thundermail::Aliases - Identity setup",
+     "snippet_html": "…own identity in <mark>Thunderbird Desktop</mark>, not a separate account, so that replies go out from the right address in <span class=\"fill\">[[COUNTRY]]</span> and everywhere else.\n\nIf…"
+    }
+   ]
+  },
+  {
+   "q": "dc signature",
+   "status": "all",
+   "group": "",
+   "field": "",
+   "ids": [
+    5
+   ],
+   "results": [
+    {
+     "id": 5,
+     "title_html": "Thundermail::Aliases - Identity setup",
+     "snippet_html": "<span class=\"dc\">{{<mark>dc.signature</mark>_block}}</span> Hello <span class=\"dc\">{{ticket.requester.first_name}}</span>,\n\nThanks for writing to us about your account. We read every message and we answer as…"
+    }
+   ]
+  },
+  {
+   "q": "country",
+   "status": "all",
+   "group": "",
+   "field": "",
+   "ids": [
+    5
+   ],
+   "results": [
+    {
+     "id": 5,
+     "title_html": "Thundermail::Aliases - Identity setup",
+     "snippet_html": "…right address in <span class=\"fill\">[[<mark>COUNTRY</mark>]]</span> and everywhere else.\n\nIf you still have problems after that, reply to this message and tell us what you see."
+    }
+   ]
+  },
+  {
+   "q": "a OR NEAR(b) *",
+   "status": "all",
+   "group": "",
+   "field": "",
+   "ids": [],
+   "results": []
+  },
+  {
+   "q": "  ** \"\" ( ",
+   "status": "all",
+   "group": "",
+   "field": "",
+   "ids": [
+    9,
+    4,
+    10,
+    1,
+    8,
+    3,
+    2,
+    5,
+    6,
+    7
+   ],
+   "results": [
+    {
+     "id": 9,
+     "title_html": "&lt;b&gt;Escape&lt;/b&gt; &amp; &quot;quotes&quot; &#x27;single&#x27;",
+     "snippet_html": "&lt;img src=x onerror=alert(1)&gt; <span class=\"fill\">[[DATE]]</span>"
+    },
+    {
+     "id": 4,
+     "title_html": "Café closing",
+     "snippet_html": "Bye for now"
+    },
+    {
+     "id": 10,
+     "title_html": "Cut::Words - Apostrophe",
+     "snippet_html": "word0 word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12 word13 word14 word15 word16 word17 word18 word19 word20 word21 word22 word23 word24 word25 word26 word27 word28 word29 we know you&#x27;d like …"
+    },
+    {
+     "id": 1,
+     "title_html": "Donation::Refund request",
+     "snippet_html": "Hello <span class=\"dc\">{{ticket.requester.first_name}}</span>, We sent your refund today."
+    },
+    {
+     "id": 8,
+     "title_html": "Lists::Nested - Steps",
+     "snippet_html": "- Open settings - Pick one"
+    },
+    {
+     "id": 3,
+     "title_html": "Old greeting",
+     "snippet_html": "Hello, the refund team here."
+    },
+    {
+     "id": 2,
+     "title_html": "Thunderbird::Translate emails",
+     "snippet_html": "Open the add-ons page. Search for a translator."
+    },
+    {
+     "id": 5,
+     "title_html": "Thundermail::Aliases - Identity setup",
+     "snippet_html": "<span class=\"dc\">{{dc.signature_block}}</span> Hello <span class=\"dc\">{{ticket.requester.first_name}}</span>, Thanks for writing to us about your account. We read every message and we answer as soon as we can. Before you change anything, please make a backup of your …"
+    },
+    {
+     "id": 6,
+     "title_html": "Tie::A - Same",
+     "snippet_html": "Unique zebra word."
+    },
+    {
+     "id": 7,
+     "title_html": "Tie::B - Same",
+     "snippet_html": "Unique zebra word."
+    }
+   ]
+  },
+  {
+   "q": "nothingmatches",
+   "status": "all",
+   "group": "",
+   "field": "",
+   "ids": [],
+   "results": []
+  },
+  {
+   "q": "refund",
+   "status": "active",
+   "group": "",
+   "field": "",
+   "ids": [
+    1
+   ],
+   "results": [
+    {
+     "id": 1,
+     "title_html": "Donation::<mark>Refund</mark> request",
+     "snippet_html": "Hello <span class=\"dc\">{{ticket.requester.first_name}}</span>,\n\nWe sent your <mark>refund</mark> today."
+    }
+   ]
+  },
+  {
+   "q": "",
+   "status": "inactive",
+   "group": "",
+   "field": "",
+   "ids": [
+    3
+   ],
+   "results": [
+    {
+     "id": 3,
+     "title_html": "Old greeting",
+     "snippet_html": "Hello, the refund team here."
+    }
+   ]
+  },
+  {
+   "q": "",
+   "status": "all",
+   "group": "100",
+   "field": "",
+   "ids": [
+    1,
+    5
+   ],
+   "results": [
+    {
+     "id": 1,
+     "title_html": "Donation::Refund request",
+     "snippet_html": "Hello <span class=\"dc\">{{ticket.requester.first_name}}</span>, We sent your refund today."
+    },
+    {
+     "id": 5,
+     "title_html": "Thundermail::Aliases - Identity setup",
+     "snippet_html": "<span class=\"dc\">{{dc.signature_block}}</span> Hello <span class=\"dc\">{{ticket.requester.first_name}}</span>, Thanks for writing to us about your account. We read every message and we answer as soon as we can. Before you change anything, please make a backup of your …"
+    }
+   ]
+  },
+  {
+   "q": "",
+   "status": "all",
+   "group": "none",
+   "field": "",
+   "ids": [
+    9,
+    10,
+    8,
+    3,
+    2,
+    6,
+    7
+   ],
+   "results": [
+    {
+     "id": 9,
+     "title_html": "&lt;b&gt;Escape&lt;/b&gt; &amp; &quot;quotes&quot; &#x27;single&#x27;",
+     "snippet_html": "&lt;img src=x onerror=alert(1)&gt; <span class=\"fill\">[[DATE]]</span>"
+    },
+    {
+     "id": 10,
+     "title_html": "Cut::Words - Apostrophe",
+     "snippet_html": "word0 word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12 word13 word14 word15 word16 word17 word18 word19 word20 word21 word22 word23 word24 word25 word26 word27 word28 word29 we know you&#x27;d like …"
+    },
+    {
+     "id": 8,
+     "title_html": "Lists::Nested - Steps",
+     "snippet_html": "- Open settings - Pick one"
+    },
+    {
+     "id": 3,
+     "title_html": "Old greeting",
+     "snippet_html": "Hello, the refund team here."
+    },
+    {
+     "id": 2,
+     "title_html": "Thunderbird::Translate emails",
+     "snippet_html": "Open the add-ons page. Search for a translator."
+    },
+    {
+     "id": 6,
+     "title_html": "Tie::A - Same",
+     "snippet_html": "Unique zebra word."
+    },
+    {
+     "id": 7,
+     "title_html": "Tie::B - Same",
+     "snippet_html": "Unique zebra word."
+    }
+   ]
+  },
+  {
+   "q": "",
+   "status": "all",
+   "group": "",
+   "field": "priority",
+   "ids": [
+    3
+   ],
+   "results": [
+    {
+     "id": 3,
+     "title_html": "Old greeting",
+     "snippet_html": "Hello, the refund team here."
+    }
+   ]
+  },
+  {
+   "q": "hello",
+   "status": "all",
+   "group": "200",
+   "field": "",
+   "ids": [
+    5
+   ],
+   "results": [
+    {
+     "id": 5,
+     "title_html": "Thundermail::Aliases - Identity setup",
+     "snippet_html": "<span class=\"dc\">{{dc.signature_block}}</span> <mark>Hello</mark> <span class=\"dc\">{{ticket.requester.first_name}}</span>,\n\nThanks for writing to us about your account. We read every message and we answer as…"
+    }
+   ]
+  },
+  {
+   "q": "escape",
+   "status": "all",
+   "group": "",
+   "field": "",
+   "ids": [
+    9
+   ],
+   "results": [
+    {
+     "id": 9,
+     "title_html": "&lt;b&gt;<mark>Escape</mark>&lt;/b&gt; &amp; &quot;quotes&quot; &#x27;single&#x27;",
+     "snippet_html": "&lt;img src=x onerror=alert(1)&gt; <span class=\"fill\">[[DATE]]</span>"
+    }
+   ]
+  },
+  {
+   "q": "settings",
+   "status": "all",
+   "group": "",
+   "field": "",
+   "ids": [
+    8,
+    5
+   ],
+   "results": [
+    {
+     "id": 8,
+     "title_html": "Lists::Nested - Steps",
+     "snippet_html": "- Open <mark>settings</mark>\n\n- Pick one"
+    },
+    {
+     "id": 5,
+     "title_html": "Thundermail::Aliases - Identity setup",
+     "snippet_html": "…open the account <mark>settings</mark> and look at the list of addresses that belong to the account. Each alias needs its own identity in Thunderbird…"
+    }
+   ]
+  },
+  {
+   "q": "zebrafish",
+   "status": "all",
+   "group": "",
+   "field": "",
+   "ids": [
+    10
+   ],
+   "results": [
+    {
+     "id": 10,
+     "title_html": "Cut::Words - Apostrophe",
+     "snippet_html": "…word20 word21 word22 word23 word24 word25 word26 word27 word28 word29 we know you&#x27;d like a <mark>zebrafish</mark> now, and <span class=\"dc\">{{ticket.requester.first_name}}</span> too"
+    }
+   ]
+  },
+  {
+   "q": "requester",
+   "status": "all",
+   "group": "",
+   "field": "",
+   "ids": [
+    1,
+    10,
+    5
+   ],
+   "results": [
+    {
+     "id": 1,
+     "title_html": "Donation::Refund request",
+     "snippet_html": "Hello <span class=\"dc\">{{ticket.<mark>requester</mark>.first_name}}</span>,\n\nWe sent your refund today."
+    },
+    {
+     "id": 10,
+     "title_html": "Cut::Words - Apostrophe",
+     "snippet_html": "…word20 word21 word22 word23 word24 word25 word26 word27 word28 word29 we know you&#x27;d like a zebrafish now, and <span class=\"dc\">{{ticket.<mark>requester</mark>.first_name}}</span> too"
+    },
+    {
+     "id": 5,
+     "title_html": "Thundermail::Aliases - Identity setup",
+     "snippet_html": "…<span class=\"dc\">{{dc.signature_block}}</span> Hello <span class=\"dc\">{{ticket.<mark>requester</mark>.first_name}}</span>,\n\nThanks for writing to us about your account. We read every message and we answer as soon as…"
+    }
+   ]
+  }
+ ],
+ "marked": [
+  {
+   "text": "Hi {{ticket.requester.first_name}}, {% if x %}yes{% endif %}",
+   "html": "Hi <span class=\"dc\">{{ticket.requester.first_name}}</span>, <span class=\"dc\">{% if x %}</span>yes<span class=\"dc\">{% endif %}</span>"
+  },
+  {
+   "text": "a { b } {single}",
+   "html": "a { b } {single}"
+  },
+  {
+   "text": "{{<b>x</b>}}",
+   "html": "<span class=\"dc\">{{&lt;b&gt;x&lt;/b&gt;}}</span>"
+  },
+  {
+   "text": "Donations from [[COUNTRY]] on [[DATE]]",
+   "html": "Donations from <span class=\"fill\">[[COUNTRY]]</span> on <span class=\"fill\">[[DATE]]</span>"
+  },
+  {
+   "text": "a [b] [[<x>]]",
+   "html": "a [b] <span class=\"fill\">[[&lt;x&gt;]]</span>"
+  },
+  {
+   "text": "[[[ ___ ]]",
+   "html": "[<span class=\"fill\">[[ ___ ]]</span>"
+  },
+  {
+   "text": "Hi. [[Insert questions…",
+   "html": "Hi. <span class=\"fill\">[[Insert questions…</span>"
+  },
+  {
+   "text": "…AMOUNT]] was charged",
+   "html": "<span class=\"fill\">…AMOUNT]]</span> was charged"
+  },
+  {
+   "text": "Hi {{x}}. {{dc.donors…",
+   "html": "Hi <span class=\"dc\">{{x}}</span>. <span class=\"dc\">{{dc.donors…</span>"
+  },
+  {
+   "text": "…first_name}}, hello",
+   "html": "<span class=\"dc\">…first_name}}</span>, hello"
+  },
+  {
+   "text": "…plain text…",
+   "html": "…plain text…"
+  },
+  {
+   "text": "{{ticket.\u0002requester\u0003.name}}",
+   "html": "<span class=\"dc\">{{ticket.<mark>requester</mark>.name}}</span>"
+  },
+  {
+   "text": "<script>&amp;\"'",
+   "html": "&lt;script&gt;&amp;amp;&quot;&#x27;"
+  }
+ ],
+ "html_to_text": [
+  {
+   "html": "<p>Hi&nbsp;<b>there</b></p><p>Bye</p><script>x()</script>",
+   "text": "Hi there\n\nBye"
+  },
+  {
+   "html": "<ul><li>one</li><li>two</li></ul>",
+   "text": "- one\n\n- two"
+  },
+  {
+   "html": "<ul><li><p>one</p></li><li><p>two</p></li></ul>",
+   "text": "- one\n\n- two"
+  },
+  {
+   "html": "<p>a</p>\n\n\n<p>b</p>",
+   "text": "a\n\nb"
+  },
+  {
+   "html": "plain <br> text",
+   "text": "plain\ntext"
+  },
+  {
+   "html": "  &lt;tag&gt;  ",
+   "text": "<tag>"
+  }
+ ],
+ "available_for": [
+  {
+   "id": 1,
+   "text": "Donor Support"
+  },
+  {
+   "id": 2,
+   "text": "All agents"
+  },
+  {
+   "id": 3,
+   "text": "All agents"
+  },
+  {
+   "id": 4,
+   "text": "Old team (deleted)"
+  },
+  {
+   "id": 5,
+   "text": "Donor Support, Tier 2"
+  },
+  {
+   "id": 6,
+   "text": "All agents"
+  },
+  {
+   "id": 7,
+   "text": "All agents"
+  },
+  {
+   "id": 8,
+   "text": "All agents"
+  },
+  {
+   "id": 9,
+   "text": "All agents"
+  },
+  {
+   "id": 10,
+   "text": "All agents"
+  }
+ ],
+ "export_label": [
+  {
+   "value": "2026-11-27T18:00:05Z",
+   "label": "Macros exported 2026-11-27 18:00 UTC"
+  },
+  {
+   "value": null,
+   "label": ""
+  },
+  {
+   "value": "yesterday",
+   "label": ""
+  }
+ ],
+ "group_choices": [
+  [
+   "none",
+   "All agents (no restriction)",
+   7
+  ],
+  [
+   "100",
+   "Donor Support",
+   2
+  ],
+  [
+   "999",
+   "Old team (deleted)",
+   1
+  ],
+  [
+   "200",
+   "Tier 2",
+   1
+  ]
+ ],
+ "field_choices": [
+  [
+   "comment_value",
+   1
+  ],
+  [
+   "comment_value_html",
+   9
+  ],
+  [
+   "current_tags",
+   3
+  ],
+  [
+   "group_id",
+   1
+  ],
+  [
+   "priority",
+   1
+  ]
+ ]
+}

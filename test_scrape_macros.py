@@ -185,9 +185,16 @@ class Groups(QuietTestCase):
         groups = sm.list_groups(req, "https://tbpro.zendesk.com", 0, sleep=no_sleep)
         self.assertIn("/api/v2/groups.json?exclude_deleted=false", req.urls[0])
         with tempfile.TemporaryDirectory() as tmp:
-            path = sm.save_groups(Path(tmp) / "groups", groups)
+            path = sm.save_groups(Path(tmp) / "groups", groups, "2026-11-27T18:00:00Z")
             self.assertEqual(json.loads(path.read_text()),
-                             {"groups": [{"id": 5, "name": "Tier 2"}], "count": 1})
+                             {"groups": [{"id": 5, "name": "Tier 2"}], "count": 1,
+                              "exported_at": "2026-11-27T18:00:00Z"})
+
+    def test_exported_at_defaults_to_now_in_utc(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = sm.save_groups(Path(tmp) / "groups", [])
+            self.assertRegex(json.loads(path.read_text())["exported_at"],
+                             r"^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ$")
 
     def test_refuses_groups_output_in_repository(self):
         self.assertEqual(sm.main(["--groups-out", str(sm.REPO / "groups-out")]), 1)
@@ -203,11 +210,13 @@ class Saving(unittest.TestCase):
         self.tmp.cleanup()
 
     def test_complete_run_writes_files_in_api_shape(self):
-        r = sm.save_macros(self.out, [macro(1), macro(2)], complete=True, force=False)
+        r = sm.save_macros(self.out, [macro(1), macro(2)], complete=True, force=False,
+                           exported_at="2026-11-27T18:00:00Z")
         self.assertEqual(r["written"], 2)
         self.assertEqual(json.loads((self.out / "1.json").read_text()), macro(1))
         listing = json.loads((self.out / "macros.json").read_text())
-        self.assertEqual(listing, {"macros": [macro(1), macro(2)], "count": 2})
+        self.assertEqual(listing, {"macros": [macro(1), macro(2)], "count": 2,
+                                   "exported_at": "2026-11-27T18:00:00Z"})
         self.assertEqual((self.out / "1.json").stat().st_mode & 0o777, 0o600)
 
     def test_unchanged_is_skipped_changed_is_rewritten(self):

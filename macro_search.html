@@ -1,0 +1,558 @@
+<!doctype html>
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
+<!--
+  Zendesk macro search for colleagues (issue #9). Open this file in a browser
+  and load macros.json and groups.json. Nothing to install.
+
+  The page sends nothing over the network: the Content-Security-Policy below
+  allows no connections, and only the one script whose SHA-256 hash it names.
+  After you change the script, test_macro_search_html.py prints the new hash.
+
+  This file repeats the search rules of macro_search.py. Change both apps in
+  the same pull request, and add a case to test_cases/search.json.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'sha256-sWbLBshPi+XnuWApI8sxq/O+gwIiztdp8N9+OPJs74k='; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Zendesk macros</title>
+<style>
+body { font: 16px/1.45 system-ui, sans-serif; margin: 0 auto; max-width: 60rem; padding: 1rem 1.5rem 3rem; color: #1d1d1f; }
+a { color: #0b57d0; }
+h1 { font-size: 1.4rem; margin: .5rem 0 1rem; }
+form.search { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: 1rem; }
+form.search input[type=search] { flex: 1 1 100%; font-size: 1.1rem; padding: .5rem .7rem; }
+select, button { font-size: .95rem; padding: .3rem .4rem; }
+.count { color: #555; margin: .5rem 0; }
+.result { border-top: 1px solid #ddd; padding: .7rem 0; }
+.result h2 { font-size: 1.05rem; margin: 0 0 .2rem; }
+.meta { color: #555; font-size: .9rem; }
+.snippet { margin: .3rem 0 0; }
+mark { background: #ffe58a; }
+.dc { background: #ffd6ec; color: #8c1257; border-radius: .2rem; padding: 0 .1rem; }
+.fill { background: #ffe2c4; color: #8a4500; border-radius: .2rem; padding: 0 .1rem; }
+.legend { color: #555; font-size: .85rem; }
+.badge { border-radius: .3rem; font-size: .8rem; padding: 0 .35rem; }
+.active { background: #d9f2df; } .inactive { background: #eee; color: #555; }
+.reply { white-space: pre-wrap; background: #f6f6f6; padding: .8rem; border-radius: .3rem; }
+table { border-collapse: collapse; width: 100%; } td, th { border-top: 1px solid #ddd; padding: .35rem .5rem; text-align: left; vertical-align: top; }
+td.value { white-space: pre-wrap; word-break: break-word; }
+pre.json { overflow-x: auto; background: #f6f6f6; padding: .8rem; font-size: .8rem; }
+/* html app only */
+.drop { border: 2px dashed #bbb; border-radius: .5rem; padding: 1.5rem; text-align: center; }
+.drop.over { border-color: #0b57d0; background: #f0f5ff; }
+.error { color: #b00020; white-space: pre-wrap; }
+.notice { background: #fff8e1; padding: .4rem .6rem; border-radius: .3rem; font-size: .9rem; }
+button.link { background: none; border: none; color: #0b57d0; cursor: pointer; padding: 0; text-decoration: underline; font-size: .9rem; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+"use strict";
+(() => {
+  const SUBDOMAIN = "tbpro";
+  const WEIGHTS = [10, 3, 1, 5];          // title, description, reply, tags
+  const TAG_FIELDS = ["current_tags", "set_tags"];
+  const HIT_START = "\x02", HIT_END = "\x03";
+  const MAX_RESULTS = 500;
+  const SNIPPET_TOKENS = 24;
+  const K1 = 1.2, B = 0.75;               // the SQLite FTS5 bm25() constants
+
+  // --- macro text (macro_search.py: html_to_text, reply_text, tags) --------
+
+  const BLOCK = new Set(["p", "div", "br", "li", "tr", "ul", "ol", "table", "blockquote",
+                         "pre", "h1", "h2", "h3", "h4", "h5", "h6", "hr"]);
+  const SKIP = new Set(["script", "style"]);
+
+  function htmlToText(source) {
+    // DOMParser documents are inert: no scripts run and no images load.
+    const doc = new DOMParser().parseFromString(source, "text/html");
+    const parts = [];
+    const walk = (node) => {
+      for (const child of node.childNodes) {
+        if (child.nodeType === Node.TEXT_NODE) { parts.push(child.data); continue; }
+        if (child.nodeType !== Node.ELEMENT_NODE) continue;
+        const tag = child.localName;
+        if (SKIP.has(tag)) continue;
+        const block = BLOCK.has(tag);
+        if (block) {
+          if (!(parts.length && parts[parts.length - 1] === "- ")) parts.push("\n");
+          if (tag === "li") parts.push("- ");
+        }
+        walk(child);
+        if (block && tag !== "br" && tag !== "hr") parts.push("\n");
+      }
+    };
+    walk(doc.body);
+    return parts.join("")
+      .replace(/[ \t\r\f\v\xa0]+/g, " ")
+      .replace(/ *\n */g, "\n")
+      .replace(/\n{3,}/g, "\n\n")
+      .trim();
+  }
+
+  const clean = (text) => text.replaceAll(HIT_START, "").replaceAll(HIT_END, "");
+
+  function asText(value) {
+    if (value === null || value === undefined) return "";
+    if (Array.isArray(value)) return value.map(asText).join(" ");
+    return String(value);
+  }
+
+  const actions = (macro) => (Array.isArray(macro.actions) ? macro.actions : [])
+    .filter((a) => a && typeof a === "object");
+
+  function replyText(macro) {
+    const parts = [];
+    for (const a of actions(macro)) {
+      if (a.field === "comment_value_html") parts.push(htmlToText(asText(a.value)));
+      else if (a.field === "comment_value") parts.push(asText(a.value).trim());
+    }
+    return parts.filter((p) => p).join("\n\n");
+  }
+
+  function tags(macro) {
+    const found = [];
+    for (const a of actions(macro)) {
+      if (TAG_FIELDS.includes(a.field)) found.push(...asText(a.value).split(/\s+/).filter((t) => t));
+    }
+    return found;
+  }
+
+  function groupIds(macro) {
+    const r = macro.restriction || {};
+    if (r.type !== "Group") return [];
+    return Array.isArray(r.ids) && r.ids.length ? [...r.ids] : (r.id ? [r.id] : []);
+  }
+
+  // --- query and matching (macro_search.py: the same section) ---------------
+
+  const TOKEN_RE = /[\p{L}\p{N}]+/gu;
+  const norm = (token) => token.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
+
+  function queryTerms(text) {
+    const terms = [];
+    for (const m of text.matchAll(/"([^"]*)"|(\S+)/g)) {
+      const quoted = m[1];
+      const parts = (quoted || m[2] || "").match(TOKEN_RE) || [];
+      if (parts.length) terms.push([parts, !quoted]);
+    }
+    return terms;
+  }
+
+  const tokensWithSpans = (text) =>
+    [...text.matchAll(TOKEN_RE)].map((m) => [m.index, m.index + m[0].length, norm(m[0])]);
+
+  function phraseStarts(tokens, phrase, prefix) {
+    const n = phrase.length, starts = [];
+    for (let i = 0; i + n <= tokens.length; i++) {
+      let ok = true;
+      for (let k = 0; k < n - 1; k++) if (tokens[i + k] !== phrase[k]) { ok = false; break; }
+      const last = tokens[i + n - 1];
+      if (ok && (prefix ? last.startsWith(phrase[n - 1]) : last === phrase[n - 1])) starts.push(i);
+    }
+    return starts;
+  }
+
+  function hitRanges(toks, terms) {
+    const words = toks.map((t) => t[2]);
+    const ranges = [];
+    for (const [parts, prefix] of terms) {
+      for (const i of phraseStarts(words, parts.map(norm), prefix)) ranges.push([i, i + parts.length - 1]);
+    }
+    ranges.sort((x, y) => (x[0] - y[0]) || (x[1] - y[1]));
+    const merged = [];
+    for (const [a, b] of ranges) {
+      const lastRange = merged[merged.length - 1];
+      if (lastRange && a <= lastRange[1] + 1) lastRange[1] = Math.max(lastRange[1], b);
+      else merged.push([a, b]);
+    }
+    return merged;
+  }
+
+  function markRanges(text, toks, ranges, first, last, cs, ce) {
+    const out = [];
+    let pos = cs;
+    for (let [a, b] of ranges) {
+      a = Math.max(a, first); b = Math.min(b, last);
+      if (a > b) continue;
+      const s = toks[a][0], e = toks[b][1];
+      out.push(text.slice(pos, s), HIT_START, text.slice(s, e), HIT_END);
+      pos = e;
+    }
+    out.push(text.slice(pos, ce));
+    return out.join("");
+  }
+
+  // Python str.isspace() and JavaScript \s agree on the usual spaces.
+  function spaceBefore(text, pos) {
+    while (pos > 0 && !/\s/.test(text[pos - 1])) pos--;
+    return pos;
+  }
+
+  function spaceAfter(text, pos) {
+    while (pos < text.length && !/\s/.test(text[pos])) pos++;
+    return pos;
+  }
+
+  function highlight(text, terms) {
+    const toks = tokensWithSpans(text);
+    return markRanges(text, toks, hitRanges(toks, terms), 0, toks.length - 1, 0, text.length);
+  }
+
+  function snippet(text, terms, size = SNIPPET_TOKENS) {
+    const toks = tokensWithSpans(text);
+    if (!toks.length) return "";
+    const ranges = hitRanges(toks, terms);
+    const hitSet = new Set();
+    for (const [a, b] of ranges) for (let i = a; i <= b; i++) hitSet.add(i);
+    const hits = [...hitSet].sort((x, y) => x - y);
+    let start = 0, best = -1;
+    for (const s of [...new Set(hits.map((h) => Math.max(0, h - 3)))].sort((x, y) => x - y)) {
+      const count = hits.filter((h) => s <= h && h < s + size).length;
+      if (count > best) { start = s; best = count; }
+    }
+    start = Math.max(0, Math.min(start, toks.length - size));
+    const end = Math.min(toks.length, start + size);
+    // Cut at spaces, not inside a word such as "you'd" or "{{ticket.requester.first_name}}".
+    const cs = start === 0 ? 0 : spaceBefore(text, toks[start][0]);
+    const ce = end === toks.length ? text.length : spaceAfter(text, toks[end - 1][1]);
+    const body = markRanges(text, toks, ranges, start, end - 1, cs, ce);
+    return (start > 0 ? "…" : "") + body + (end < toks.length ? "…" : "");
+  }
+
+  function shorten(text, limit = 220) {
+    const t = text.split(/\s+/).filter((w) => w).join(" ");
+    const chars = Array.from(t);
+    if (chars.length <= limit) return t;
+    const cut = chars.slice(0, limit).join("");
+    const i = cut.lastIndexOf(" ");
+    return (i >= 0 ? cut.slice(0, i) : cut) + " …";
+  }
+
+  // --- index (macro_search.py: MacroIndex) ----------------------------------
+
+  let index = null;
+
+  function buildIndex(macros, groups, exportedAt) {
+    const byId = new Map();
+    for (const m of macros) byId.set(m.id, m);
+    const groupNames = new Map();
+    for (const g of groups) {
+      if (g && "id" in g) groupNames.set(g.id, (g.name || String(g.id)) + (g.deleted ? " (deleted)" : ""));
+    }
+    const docs = new Map(), replies = new Map();
+    let total = 0;
+    for (const [id, m] of byId) {
+      const reply = clean(replyText(m));
+      replies.set(id, reply);
+      const cols = [clean(m.title || ""), clean(m.description || ""), reply, clean(tags(m).join(" "))]
+        .map((t) => tokensWithSpans(t).map((x) => x[2]));
+      const len = cols.reduce((n, c) => n + c.length, 0);
+      total += len;
+      docs.set(id, { cols, len });
+    }
+    const lower = (id) => (byId.get(id).title || "").toLowerCase();
+    const order = [...byId.keys()].sort((a, b) => (lower(a) < lower(b) ? -1 : lower(a) > lower(b) ? 1 : 0));
+    return { macros: byId, groupNames, docs, replies, total, order, exportedAt };
+  }
+
+  const groupName = (gid) => (index.groupNames.has(gid) ? index.groupNames.get(gid) : String(gid));
+
+  function availableFor(macro) {
+    const ids = groupIds(macro);
+    return ids.length ? ids.map(groupName).join(", ") : "All agents";
+  }
+
+  const adminUrl = (id) => `https://${SUBDOMAIN}.zendesk.com/admin/workspaces/agent-workspace/macros/${id}`;
+
+  function groupChoices() {
+    const counts = new Map();
+    let unrestricted = 0;
+    for (const m of index.macros.values()) {
+      const ids = groupIds(m);
+      if (!ids.length) unrestricted++;
+      for (const g of ids) counts.set(g, (counts.get(g) || 0) + 1);
+    }
+    const rest = [...counts].map(([g, n]) => [String(g), groupName(g), n]);
+    const key = (c) => c[1].toLowerCase();
+    rest.sort((x, y) => (key(x) < key(y) ? -1 : key(x) > key(y) ? 1 : 0));
+    return [["none", "All agents (no restriction)", unrestricted], ...rest];
+  }
+
+  function fieldChoices() {
+    const counts = new Map();
+    for (const m of index.macros.values()) {
+      for (const f of new Set(actions(m).map((a) => a.field).filter((f) => f))) {
+        counts.set(f, (counts.get(f) || 0) + 1);
+      }
+    }
+    return [...counts].sort((x, y) => (x[0] < y[0] ? -1 : x[0] > y[0] ? 1 : 0));
+  }
+
+  function search(q = "", status = "all", group = "", field = "") {
+    const terms = queryTerms(q);
+    let rows;
+    if (terms.length) {
+      // SQLite FTS5 bm25(): every phrase must match; a phrase can match in
+      // any column; column weights multiply the hit counts.
+      const phrases = terms.map(([parts, prefix]) => [parts.map(norm), prefix]);
+      const n = index.docs.size, avgdl = index.total / n;
+      const hitsByDoc = new Map(), nHit = phrases.map(() => 0);
+      for (const [id, d] of index.docs) {
+        const counts = phrases.map(([p, prefix]) => d.cols.map((col) => phraseStarts(col, p, prefix).length));
+        counts.forEach((cs, i) => { if (cs.some((c) => c > 0)) nHit[i]++; });
+        hitsByDoc.set(id, counts);
+      }
+      const idf = nHit.map((h) => { const v = Math.log((n - h + 0.5) / (h + 0.5)); return v <= 0 ? 1e-6 : v; });
+      const scored = [];
+      for (const [id, counts] of hitsByDoc) {
+        if (!counts.every((cs) => cs.some((c) => c > 0))) continue;
+        const D = index.docs.get(id).len;
+        let score = 0;
+        counts.forEach((cs, i) => {
+          const f = cs.reduce((sum, c, col) => sum + WEIGHTS[col] * c, 0);
+          score += idf[i] * ((f * (K1 + 1.0)) / (f + K1 * (1 - B + B * D / avgdl)));
+        });
+        scored.push([id, score]);
+      }
+      scored.sort((x, y) => (y[1] - x[1]) || (x[0] - y[0]));
+      rows = scored.map(([id]) => [id, highlight(clean(index.macros.get(id).title || ""), terms),
+                                   snippet(index.replies.get(id), terms)]);
+    } else {
+      rows = index.order.map((id) => [id, index.macros.get(id).title || "", shorten(index.replies.get(id))]);
+    }
+    const results = [];
+    for (const [id, title, snip] of rows) {
+      const m = index.macros.get(id);
+      if (status === "active" && !m.active) continue;
+      if (status === "inactive" && m.active) continue;
+      if (group === "none" && groupIds(m).length) continue;
+      if (group !== "" && group !== "none" && !groupIds(m).map(String).includes(group)) continue;
+      if (field && !actions(m).some((a) => a.field === field)) continue;
+      results.push({ id, title, snippet: snip, macro: m });
+    }
+    return results;
+  }
+
+  // --- rendering (macro_search.py: pages) -----------------------------------
+
+  const esc = (value) => asText(value).replaceAll("&", "&amp;").replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#x27;");
+
+  const DYNAMIC = /\{\{[^{}]*\}\}|\{%[\s\S]*?%\}/g;
+  const FILL_IN = /\[\[[^\[\]]*\]\]/g;
+  const PARTIAL = /\{\{[^{}]*…$|^…[^{}]*\}\}/g;
+  const PARTIAL_FILL = /\[\[[^\[\]]*…$|^…[^\[\]]*\]\]/g;
+
+  const dynamic = (escaped) => escaped.replace(DYNAMIC, (m) => `<span class="dc">${m}</span>`);
+  const fillIn = (escaped) => escaped.replace(FILL_IN, (m) => `<span class="fill">${m}</span>`);
+  const show = (value) => fillIn(dynamic(esc(value)));
+
+  function marked(text) {
+    let h = show(text).replace(PARTIAL, (m) => `<span class="dc">${m}</span>`);
+    h = h.replace(PARTIAL_FILL, (m) => `<span class="fill">${m}</span>`);
+    return h.replaceAll(HIT_START, "<mark>").replaceAll(HIT_END, "</mark>");
+  }
+
+  function exportLabel(value) {
+    if (typeof value !== "string" || !/^\d{4}-\d\d-\d\dT\d\d:\d\d/.test(value)) return "";
+    return `Macros exported ${value.slice(0, 10)} ${value.slice(11, 16)} UTC`;
+  }
+
+  const options = (choices, selected) => choices.map(([v, label]) =>
+    `<option value="${esc(v)}"${v === selected ? " selected" : ""}>${esc(label)}</option>`).join("");
+
+  const statusBadge = (m) => (m.active ? '<span class="badge active">active</span>'
+                                       : '<span class="badge inactive">inactive</span>');
+
+  const zendeskLink = (id) =>
+    `<a href="${esc(adminUrl(id))}" target="_blank" rel="noopener noreferrer">Open in Zendesk</a>`;
+
+  function queryString(params) {
+    const qs = new URLSearchParams();
+    for (const [k, v] of Object.entries(params)) if (v) qs.set(k, v);
+    return qs.toString();
+  }
+
+  function renderSearch(params) {
+    const q = params.q || "", group = params.group || "", field = params.field || "";
+    const status = ["active", "inactive"].includes(params.status) ? params.status : "all";
+    const results = search(q, status, group, field);
+    const qs = queryString({ q, status: params.status || "", group, field });
+    const suffix = qs ? `?${qs}` : "";
+    const form =
+      '<form class="search" id="search">' +
+      `<input type="search" name="q" value="${esc(q)}" placeholder="Search titles, replies, and tags" autofocus>` +
+      '<select name="status" aria-label="Status">' +
+      options([["all", "Active and inactive"], ["active", "Active"], ["inactive", "Inactive"]], status) +
+      '</select><select name="group" aria-label="Available for">' +
+      options([["", "Any group"], ...groupChoices().map(([v, label, n]) => [v, `${label} (${n})`])], group) +
+      '</select><select name="field" aria-label="Changes field">' +
+      options([["", "Any field"], ...fieldChoices().map(([f, n]) => [f, `${f} (${n})`])], field) +
+      '</select><button type="submit">Search</button></form>';
+    const shown = results.slice(0, MAX_RESULTS);
+    const items = shown.map((r) =>
+      '<div class="result">' +
+      `<h2><a href="#/macro/${r.id}${esc(suffix)}">${marked(r.title)}</a></h2>` +
+      `<div class="meta">${statusBadge(r.macro)} · ${esc(availableFor(r.macro))} · ${zendeskLink(r.id)}</div>` +
+      (r.snippet ? `<p class="snippet">${marked(r.snippet)}</p>` : "") +
+      "</div>").join("");
+    let count = `${results.length} of ${index.macros.size} macros`;
+    if (results.length > shown.length) count += ` (first ${shown.length} shown)`;
+    const exported = exportLabel(index.exportedAt);
+    if (exported) count += ` · ${exported}`;
+    const legend = '<p class="legend"><span class="dc">{{pink}}</span> dynamic content · ' +
+                   '<span class="fill">[[orange]]</span> replace before sending</p>';
+    const notice = index.groupNames.size ? "" :
+      '<p class="notice">Load groups.json to see group names instead of group IDs.</p>';
+    document.title = q ? `${q} - Zendesk macros` : "Zendesk macros";
+    return `<h1>Zendesk macros</h1>${form}<p class="count">${esc(count)}</p>${legend}${notice}` +
+           items + '<p><button type="button" class="link" id="reload">Load other files</button></p>';
+  }
+
+  function renderValue(field, value) {
+    if (field === "comment_value_html") return show(htmlToText(asText(value)));
+    if (field === "group_id" && /^\d+$/.test(String(value))) {
+      return esc(`${groupName(Number(value))} (${value})`);
+    }
+    return show(value);
+  }
+
+  function renderMacro(id, backQs) {
+    const m = index.macros.get(id);
+    const rows = actions(m).map((a) =>
+      `<tr><th>${esc(a.field)}</th><td class="value">${renderValue(a.field, a.value)}</td></tr>`).join("");
+    const reply = index.replies.get(id);
+    document.title = `${m.title || ""} - Zendesk macros`;
+    return `<p><a href="#/${esc(backQs ? "?" + backQs : "")}">Back to search</a></p>` +
+      `<h1>${esc(m.title)}</h1>` +
+      `<p class="meta">${statusBadge(m)} · ${esc(availableFor(m))} · ${zendeskLink(id)}<br>` +
+      `Created ${esc(m.created_at)} · Updated ${esc(m.updated_at)} · ID ${esc(id)}</p>` +
+      (m.description ? `<h2>Description</h2><p class="reply">${show(m.description)}</p>` : "") +
+      (reply ? `<h2>Reply</h2><div class="reply">${show(reply)}</div>` : "") +
+      `<h2>Actions</h2><table>${rows}</table>` +
+      '<details><summary>API JSON</summary><pre class="json">' + esc(JSON.stringify(m, null, 2)) +
+      "</pre></details>";
+  }
+
+  // --- loading files ---------------------------------------------------------
+
+  const loaded = { macros: null, groups: null };
+  let loadError = "";
+
+  function renderLoad() {
+    document.title = "Zendesk macros";
+    const have = [loaded.macros && `macros.json (${loaded.macros.macros.length} macros)`,
+                  loaded.groups && `groups.json (${loaded.groups.groups.length} groups)`].filter((x) => x);
+    return '<h1>Zendesk macros</h1><div class="drop" id="drop">' +
+      "<p>Drag <b>macros.json</b> and <b>groups.json</b> here, or choose them:</p>" +
+      '<p><input type="file" id="files" accept=".json,application/json" multiple></p>' +
+      (have.length ? `<p class="meta">Loaded: ${esc(have.join(", "))}</p>` : "") +
+      (loaded.macros ? '<p><button type="button" id="show">Search the macros</button></p>' : "") +
+      '<p class="meta">The files stay on this computer. This page sends nothing over the network.</p>' +
+      (loadError ? `<p class="error">${esc(loadError)}</p>` : "") + "</div>";
+  }
+
+  function useDocuments(macrosDoc, groupsDoc) {
+    index = buildIndex(macrosDoc.macros, groupsDoc ? groupsDoc.groups : [], macrosDoc.exported_at);
+  }
+
+  async function loadFiles(files) {
+    const errors = [];
+    for (const file of files) {
+      try {
+        const data = JSON.parse(await file.text());
+        if (data && Array.isArray(data.macros)) loaded.macros = data;
+        else if (data && Array.isArray(data.groups)) loaded.groups = data;
+        else errors.push(`${file.name} is not macros.json or groups.json.`);
+      } catch (e) {
+        errors.push(`${file.name} is not a JSON file: ${e.message}`);
+      }
+    }
+    loadError = errors.join("\n");
+    if (loaded.macros) {
+      useDocuments(loaded.macros, loaded.groups);
+      if (!errors.length) { location.hash = "#/"; route(); return; }
+    }
+    render(renderLoad());
+  }
+
+  // --- routing and events ----------------------------------------------------
+
+  const app = document.getElementById("app");
+
+  function render(html) {
+    app.innerHTML = html;
+    const input = app.querySelector("input[type=search]");
+    if (input) { input.focus(); input.setSelectionRange(input.value.length, input.value.length); }
+  }
+
+  function route() {
+    if (!index || location.hash === "#/load") { render(renderLoad()); return; }
+    const hash = location.hash.replace(/^#\/?/, "");
+    const [path, query = ""] = hash.split(/\?(.*)/s);
+    const params = Object.fromEntries(new URLSearchParams(query));
+    const detail = /^macro\/(\d+)$/.exec(path);
+    if (detail && index.macros.has(Number(detail[1]))) {
+      render(renderMacro(Number(detail[1]), query));
+    } else {
+      render(renderSearch(params));
+    }
+    window.scrollTo(0, 0);
+  }
+
+  app.addEventListener("submit", (event) => {
+    if (event.target.id !== "search") return;
+    event.preventDefault();
+    const data = new FormData(event.target);
+    const qs = queryString({ q: data.get("q"), status: data.get("status") === "all" ? "" : data.get("status"),
+                             group: data.get("group"), field: data.get("field") });
+    location.hash = qs ? `#/?${qs}` : "#/";
+  });
+  app.addEventListener("change", (event) => {
+    if (event.target.id === "files") loadFiles([...event.target.files]);
+  });
+  app.addEventListener("click", (event) => {
+    if (event.target.id === "reload") location.hash = "#/load";
+    if (event.target.id === "show") location.hash = "#/";
+  });
+  // Without these handlers, the browser opens a dropped file instead.
+  window.addEventListener("dragover", (event) => {
+    event.preventDefault();
+    const drop = document.getElementById("drop");
+    if (drop) drop.classList.add("over");
+  });
+  window.addEventListener("dragleave", () => {
+    const drop = document.getElementById("drop");
+    if (drop) drop.classList.remove("over");
+  });
+  window.addEventListener("drop", (event) => {
+    event.preventDefault();
+    if (event.dataTransfer && event.dataTransfer.files.length) loadFiles([...event.dataTransfer.files]);
+  });
+  window.addEventListener("hashchange", route);
+
+  // For test_macro_search_html.py. It reads nothing and sends nothing.
+  window.macroSearchTest = Object.freeze({
+    load(macrosDoc, groupsDoc) { useDocuments(macrosDoc, groupsDoc); },
+    search(q, status, group, field) {
+      return search(q, status, group, field).map((r) =>
+        ({ id: r.id, title_html: marked(r.title), snippet_html: marked(r.snippet) }));
+    },
+    marked, htmlToText, exportLabel,
+    availableFor(id) { return availableFor(index.macros.get(id)); },
+    groupChoices() { return groupChoices(); },
+    fieldChoices() { return fieldChoices(); },
+  });
+
+  route();
+})();
+</script>
+</body>
+</html>

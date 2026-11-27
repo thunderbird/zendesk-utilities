@@ -190,6 +190,18 @@ class FillIn(unittest.TestCase):
                                           '<span class="fill">[[<mark>DATE</mark>]]</span>')
 
 
+class ExportDate(unittest.TestCase):
+    def test_label(self):
+        self.assertEqual(ms.export_label("2026-11-27T18:00:05Z"), "Macros exported 2026-11-27 18:00 UTC")
+        self.assertEqual(ms.export_label(None), "")
+        self.assertEqual(ms.export_label("yesterday"), "")
+
+    def test_search_page_shows_it(self):
+        index = ms.MacroIndex(MACROS, GROUPS, exported_at="2026-11-27T18:00:00Z")
+        self.assertIn("4 of 4 macros · Macros exported 2026-11-27 18:00 UTC", ms.render_search(index, {}))
+        self.assertIn("4 of 4 macros</p>", ms.render_search(ms.MacroIndex(MACROS, GROUPS), {}))
+
+
 class Server(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
