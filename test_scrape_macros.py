@@ -4,12 +4,31 @@
 
 """Offline tests for scrape_macros.py. No browser and no network."""
 
+import io
 import json
 import tempfile
 import unittest
+from contextlib import ExitStack, contextmanager, redirect_stderr, redirect_stdout
 from pathlib import Path
 
 import scrape_macros as sm
+
+
+@contextmanager
+def captured():
+    """Capture the progress and error lines that the code under test prints."""
+    out, err = io.StringIO(), io.StringIO()
+    with redirect_stdout(out), redirect_stderr(err):
+        yield out, err
+
+
+class QuietTestCase(unittest.TestCase):
+    """Capture output for the whole test; tests read it from self.out."""
+
+    def setUp(self):
+        stack = ExitStack()
+        self.out, self.err = stack.enter_context(captured())
+        self.addCleanup(stack.close)
 
 
 class FakeResponse:
@@ -96,8 +115,10 @@ class Http(unittest.TestCase):
         req = FakeRequest([FakeResponse(429, headers={"retry-after": "1"}),
                            FakeResponse(200, {"ok": True})])
         waits = []
-        self.assertEqual(sm.get_json(req, "u", sleep=waits.append), {"ok": True})
+        with captured() as (_, err):
+            self.assertEqual(sm.get_json(req, "u", sleep=waits.append), {"ok": True})
         self.assertEqual(waits, [6])
+        self.assertIn("rate limited; waiting 6s", err.getvalue())
 
     def test_html_login_page_is_session_error(self):
         req = FakeRequest([FakeResponse(200, headers={"content-type": "text/html"})])
@@ -115,7 +136,7 @@ class Http(unittest.TestCase):
         self.assertEqual(sm.signed_in_user(FakeRequest([FakeResponse(200, agent)]), "b")["id"], 7)
 
 
-class Listing(unittest.TestCase):
+class Listing(QuietTestCase):
     def test_first_page_asks_for_shared_macros(self):
         url = sm.first_page_url("https://tbpro.zendesk.com")
         self.assertIn("/api/v2/macros.json?", url)
@@ -132,6 +153,7 @@ class Listing(unittest.TestCase):
         self.assertEqual([m["id"] for m in macros], [1, 2, 3])
         self.assertTrue(complete)
         self.assertEqual(req.urls[1], "p2")
+        self.assertIn("page 2: 1 macros (3 so far)", self.out.getvalue())
 
     def test_offset_pagination_fallback(self):
         req = FakeRequest([
@@ -156,7 +178,7 @@ class Listing(unittest.TestCase):
                            sleep=no_sleep)
 
 
-class Groups(unittest.TestCase):
+class Groups(QuietTestCase):
     def test_groups_are_listed_and_saved_in_api_shape(self):
         req = FakeRequest([FakeResponse(200, {"groups": [{"id": 5, "name": "Tier 2"}],
                                               "meta": {"has_more": False}, "links": {}})])
@@ -169,6 +191,7 @@ class Groups(unittest.TestCase):
 
     def test_refuses_groups_output_in_repository(self):
         self.assertEqual(sm.main(["--groups-out", str(sm.REPO / "groups-out")]), 1)
+        self.assertIn("refusing groups directory", self.err.getvalue())
 
 
 class Saving(unittest.TestCase):
@@ -230,8 +253,10 @@ class Browser(unittest.TestCase):
 
 class Main(unittest.TestCase):
     def test_refuses_output_in_repository(self):
-        rc = sm.main(["--out", str(sm.REPO / "macros-out")])
+        with captured() as (_, err):
+            rc = sm.main(["--out", str(sm.REPO / "macros-out")])
         self.assertEqual(rc, 1)
+        self.assertIn("refusing output directory", err.getvalue())
         self.assertFalse((sm.REPO / "macros-out").exists())
 
 

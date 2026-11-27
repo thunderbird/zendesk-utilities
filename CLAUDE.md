@@ -10,6 +10,7 @@ uv run python -m unittest test_scrape_macros.Saving         # one test class
 uv run scrape_macros.py --login                             # Roland signs in by hand
 uv run scrape_macros.py --limit 3                           # trial download
 uv run macro_search.py --open                               # search app on 127.0.0.1:8765
+uv run new_macro.py --brand tfa --name ... --description ... --file r.html --dry-run
 ```
 
 Use `uv` for all Python work. Each script has a PEP 723 inline metadata block for its dependencies. There is no `pyproject.toml`.
@@ -25,6 +26,8 @@ All requests go through `ctx.request`, not `fetch()` inside a page, as in thunde
 `scrape_macros.py` also downloads `GET /api/v2/groups.json?exclude_deleted=false`. Some macros are restricted to deleted groups, and the list omits those groups by default.
 
 `macro_search.py` (issue #3) uses only the standard library. It loads `macros.json` and `groups.json`, builds an in-memory SQLite FTS5 index, and serves HTML from `http.server`. `fts_query()` puts every user term in double quotes, so FTS5 syntax in the input has no effect. Every macro value goes through `esc()` or `marked()`, and the CSP forbids scripts. The server binds `127.0.0.1` and refuses requests with another `Host` header, to block DNS rebinding.
+
+`new_macro.py` (issue #6) builds a draft from the brand template in `macros.json` (template actions, new reply and tag) and checks it with `macro_rules.check_macro()`. The rules restate the private playbook, so never copy playbook text, names, or internal links into this public repository. `macro_ui.py` holds all Admin Center automation. In the macro form iframe, `Locator.fill()` fails over WebDriver BiDi, so the module types key by key, and it sets the reply through the CKEditor 5 `ckeditorInstance`. Test changes to `macro_ui.py` with `fill_form()` only. `submit()` creates a real macro in production Zendesk. Issue #7 replaces `macro_ui.py` with `POST /api/v2/macros`.
 
 ## Data location
 

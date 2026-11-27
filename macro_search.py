@@ -73,7 +73,9 @@ class _TextExtractor(HTMLParser):
         if tag in self.SKIP:
             self.skipping += 1
         elif tag in self.BLOCK:
-            self.parts.append("\n")
+            # A <p> inside a list item stays on the "- " line.
+            if not (self.parts and self.parts[-1] == "- "):
+                self.parts.append("\n")
             if tag == "li":
                 self.parts.append("- ")
 
@@ -279,13 +281,26 @@ def dynamic(escaped: str) -> str:
     return DYNAMIC.sub(lambda m: f'<span class="dc">{m.group(0)}</span>', escaped)
 
 
+# The team's fill-in markers, for example [[COUNTRY]]. Zendesk does nothing
+# with them: the agent must replace them before sending, or the customer
+# sees them. Escaping leaves square brackets alone, as it does braces.
+FILL_IN = re.compile(r"\[\[[^\[\]]*\]\]")
+
+
+def fill_in(escaped: str) -> str:
+    """Wrap fill-in markers in already-escaped text in an orange <span>."""
+    return FILL_IN.sub(lambda m: f'<span class="fill">{m.group(0)}</span>', escaped)
+
+
 def show(value) -> str:
-    """Escape a macro value and highlight its dynamic content."""
-    return dynamic(esc(value))
+    """Escape a macro value and highlight dynamic content and fill-in markers."""
+    return fill_in(dynamic(esc(value)))
 
 
-# A snippet can cut a placeholder at either end: "{{dc.donors…" or "…name}}".
+# A snippet can cut a placeholder or a fill-in marker at either end:
+# "{{dc.donors…", "…name}}", "[[Insert questions…", or "…COUNTRY]]".
 PARTIAL = re.compile(r"\{\{[^{}]*…$|^…[^{}]*\}\}")
+PARTIAL_FILL = re.compile(r"\[\[[^\[\]]*…$|^…[^\[\]]*\]\]")
 
 
 def marked(text: str) -> str:
@@ -295,6 +310,7 @@ def marked(text: str) -> str:
     hit inside a placeholder ends up as a <mark> inside the pink <span>.
     """
     html_text = PARTIAL.sub(lambda m: f'<span class="dc">{m.group(0)}</span>', show(text))
+    html_text = PARTIAL_FILL.sub(lambda m: f'<span class="fill">{m.group(0)}</span>', html_text)
     return html_text.replace(HIT_START, "<mark>").replace(HIT_END, "</mark>")
 
 
@@ -312,6 +328,8 @@ select, button { font-size: .95rem; padding: .3rem .4rem; }
 .snippet { margin: .3rem 0 0; }
 mark { background: #ffe58a; }
 .dc { background: #ffd6ec; color: #8c1257; border-radius: .2rem; padding: 0 .1rem; }
+.fill { background: #ffe2c4; color: #8a4500; border-radius: .2rem; padding: 0 .1rem; }
+.legend { color: #555; font-size: .85rem; }
 .badge { border-radius: .3rem; font-size: .8rem; padding: 0 .35rem; }
 .active { background: #d9f2df; } .inactive { background: #eee; color: #555; }
 .reply { white-space: pre-wrap; background: #f6f6f6; padding: .8rem; border-radius: .3rem; }
@@ -378,7 +396,9 @@ def render_search(index: MacroIndex, params: dict[str, str]) -> str:
     count = f"{len(results)} of {len(index.macros)} macros"
     if len(results) > len(shown):
         count += f" (first {len(shown)} shown)"
-    body = (f'<h1>Zendesk macros</h1>{form}<p class="count">{count}</p>' + "".join(items))
+    legend = ('<p class="legend"><span class="dc">{{pink}}</span> dynamic content · '
+              '<span class="fill">[[orange]]</span> replace before sending</p>')
+    body = (f'<h1>Zendesk macros</h1>{form}<p class="count">{count}</p>{legend}' + "".join(items))
     return page(f"{q} - Zendesk macros" if q else "Zendesk macros", body)
 
 
