@@ -268,9 +268,34 @@ def esc(value) -> str:
     return html.escape(as_text(value), quote=True)
 
 
+# Zendesk dynamic content: placeholders such as {{ticket.requester.first_name}}
+# and {{dc.some_item}}, and Liquid tags such as {% if ... %}. html.escape()
+# leaves braces and % alone, so this runs safely on already-escaped text.
+DYNAMIC = re.compile(r"\{\{[^{}]*\}\}|\{%.*?%\}", re.DOTALL)
+
+
+def dynamic(escaped: str) -> str:
+    """Wrap dynamic content in already-escaped text in a pink <span>."""
+    return DYNAMIC.sub(lambda m: f'<span class="dc">{m.group(0)}</span>', escaped)
+
+
+def show(value) -> str:
+    """Escape a macro value and highlight its dynamic content."""
+    return dynamic(esc(value))
+
+
+# A snippet can cut a placeholder at either end: "{{dc.donors…" or "…name}}".
+PARTIAL = re.compile(r"\{\{[^{}]*…$|^…[^{}]*\}\}")
+
+
 def marked(text: str) -> str:
-    """Escape text, then turn the hit markers into <mark> elements."""
-    return esc(text).replace(HIT_START, "<mark>").replace(HIT_END, "</mark>")
+    """Escape text, highlight dynamic content, and turn hit markers into <mark>.
+
+    Dynamic content is wrapped before the markers become tags, so a search
+    hit inside a placeholder ends up as a <mark> inside the pink <span>.
+    """
+    html_text = PARTIAL.sub(lambda m: f'<span class="dc">{m.group(0)}</span>', show(text))
+    return html_text.replace(HIT_START, "<mark>").replace(HIT_END, "</mark>")
 
 
 STYLE = """
@@ -286,6 +311,7 @@ select, button { font-size: .95rem; padding: .3rem .4rem; }
 .meta { color: #555; font-size: .9rem; }
 .snippet { margin: .3rem 0 0; }
 mark { background: #ffe58a; }
+.dc { background: #ffd6ec; color: #8c1257; border-radius: .2rem; padding: 0 .1rem; }
 .badge { border-radius: .3rem; font-size: .8rem; padding: 0 .35rem; }
 .active { background: #d9f2df; } .inactive { background: #eee; color: #555; }
 .reply { white-space: pre-wrap; background: #f6f6f6; padding: .8rem; border-radius: .3rem; }
@@ -358,10 +384,10 @@ def render_search(index: MacroIndex, params: dict[str, str]) -> str:
 
 def render_value(index: MacroIndex, field: str, value) -> str:
     if field == "comment_value_html":
-        return esc(html_to_text(as_text(value)))
+        return show(html_to_text(as_text(value)))
     if field == "group_id" and str(value).isdigit():
         return esc(f"{index.group_name(int(value))} ({value})")
-    return esc(value)
+    return show(value)
 
 
 def render_macro(index: MacroIndex, macro_id: int, back_qs: str) -> str:
@@ -376,8 +402,8 @@ def render_macro(index: MacroIndex, macro_id: int, back_qs: str) -> str:
         f'<h1>{esc(m.get("title"))}</h1>'
         f'<p class="meta">{status_badge(m)} · {esc(index.available_for(m))} · {zendesk_link(index, macro_id)}<br>'
         f'Created {esc(m.get("created_at"))} · Updated {esc(m.get("updated_at"))} · ID {macro_id}</p>'
-        + (f'<h2>Description</h2><p class="reply">{esc(m.get("description"))}</p>' if m.get("description") else "")
-        + (f'<h2>Reply</h2><div class="reply">{esc(reply)}</div>' if reply else "")
+        + (f'<h2>Description</h2><p class="reply">{show(m.get("description"))}</p>' if m.get("description") else "")
+        + (f'<h2>Reply</h2><div class="reply">{show(reply)}</div>' if reply else "")
         + f'<h2>Actions</h2><table>{rows}</table>'
         + '<details><summary>API JSON</summary><pre class="json">'
         + esc(json.dumps(m, indent=2, ensure_ascii=False)) + "</pre></details>"

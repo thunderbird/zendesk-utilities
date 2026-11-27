@@ -130,6 +130,40 @@ class Pages(unittest.TestCase):
         self.assertNotIn("<script>x", body)
 
 
+class Dynamic(unittest.TestCase):
+    def test_placeholders_and_liquid_are_wrapped(self):
+        self.assertEqual(
+            ms.show("Hi {{ticket.requester.first_name}}, {% if x %}yes{% endif %}"),
+            'Hi <span class="dc">{{ticket.requester.first_name}}</span>, '
+            '<span class="dc">{% if x %}</span>yes<span class="dc">{% endif %}</span>')
+
+    def test_plain_braces_are_left_alone(self):
+        self.assertEqual(ms.show("a { b } {single}"), "a { b } {single}")
+
+    def test_html_inside_placeholder_stays_escaped(self):
+        self.assertEqual(ms.show("{{<b>x</b>}}"), '<span class="dc">{{&lt;b&gt;x&lt;/b&gt;}}</span>')
+
+    def test_search_hit_inside_placeholder_nests(self):
+        text = "{{ticket." + ms.HIT_START + "requester" + ms.HIT_END + ".name}}"
+        self.assertEqual(ms.marked(text),
+                         '<span class="dc">{{ticket.<mark>requester</mark>.name}}</span>')
+
+    def test_placeholders_cut_by_a_snippet(self):
+        self.assertEqual(ms.marked("Hi {{x}}. {{dc.donors…"),
+                         'Hi <span class="dc">{{x}}</span>. <span class="dc">{{dc.donors…</span>')
+        self.assertEqual(ms.marked("…first_name}}, hello"),
+                         '<span class="dc">…first_name}}</span>, hello')
+        self.assertEqual(ms.marked("…plain text…"), "…plain text…")
+
+    def test_pages_highlight_dynamic_content(self):
+        m = macro(7, "Greeting", "<p>Hello {{ticket.requester.first_name}},</p><p>{{dc.signature}}</p>")
+        index = ms.MacroIndex([m], [])
+        self.assertIn('<span class="dc">{{ticket.requester.first_name}}</span>',
+                      ms.render_search(index, {"q": "hello"}))
+        detail = ms.render_macro(index, 7, "")
+        self.assertEqual(detail.count('<span class="dc">{{dc.signature}}</span>'), 2)  # reply + action
+
+
 class Server(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
