@@ -35,9 +35,10 @@ import html
 import re
 import subprocess
 import sys
+import time
 from html.parser import HTMLParser
 from pathlib import Path
-from urllib.parse import urljoin
+from urllib.parse import quote, urljoin, urlsplit
 
 import macro_rules as rules
 import macro_ui
@@ -176,21 +177,84 @@ def read_file(path: Path) -> str:
     return sanitize_html(text) if path.suffix.lower() in (".html", ".htm") else text_to_html(text)
 
 
-def read_url(request, base: str, url: str) -> str:
-    """Reply HTML from a Knowledge Base article or another web page."""
+# Runs in the page. Inside <article>, <main>, or <body>, find the element
+# whose direct children hold the most paragraph, list, and heading text. That
+# is the post body. Its neighbors (title, date, author, tags, buttons,
+# reference lists) stay out of the reply.
+MAIN_CONTENT_JS = """() => {
+  const root = document.querySelector('article') || document.querySelector('main') || document.body;
+  const blocks = ['P', 'UL', 'OL', 'H2', 'H3', 'H4', 'PRE', 'BLOCKQUOTE', 'TABLE'];
+  let best = root, bestScore = -1;
+  for (const el of [root, ...root.querySelectorAll('div, section, article, main')]) {
+    let score = 0;
+    for (const c of el.children) {
+      if (blocks.includes(c.tagName)) score += (c.innerText || '').trim().length;
+    }
+    if (score > bestScore) { best = el; bestScore = score; }
+  }
+  return bestScore > 0 ? best.innerHTML : '';
+}"""
+
+
+def same_site(url: str, final_url: str) -> bool:
+    return urlsplit(url).hostname == urlsplit(final_url).hostname
+
+
+def read_url(ctx, base: str, url: str) -> str:
+    """Reply HTML from a Knowledge Base article or another web page.
+
+    Other pages open in a browser tab, so pages that need JavaScript work,
+    and so do sites where you signed in with --sign-in. A page that sends
+    the browser to another site is a sign-in page, and the script stops
+    instead of using the sign-in form as the reply.
+    """
     match = KB_RE.match(url)
     if match:
-        data = scrape.get_json(request, f"{base}/api/v2/help_center/articles/{match.group(1)}.json")
+        data = scrape.get_json(ctx.request, f"{base}/api/v2/help_center/articles/{match.group(1)}.json")
         article = data.get("article") or {}
         if not article.get("body"):
             raise InputError(f"article {match.group(1)} has no body")
         return sanitize_html(article["body"], base_url=article.get("html_url") or url)
-    res = request.get(url, timeout=30_000)
-    if res.status != 200:
-        raise InputError(f"GET {url} returned HTTP {res.status}")
-    if "html" not in res.headers.get("content-type", ""):
-        return text_to_html(res.text())
-    return sanitize_html(res.text(), main_only=True, base_url=url)
+    from playwright.sync_api import Error as PlaywrightError
+
+    page = ctx.new_page()
+    try:
+        try:
+            res = page.goto(url, wait_until="load", timeout=60_000)
+        except PlaywrightError as exc:
+            raise InputError(f"cannot open {url}: {str(exc).splitlines()[0]}") from exc
+        # Many pages never go quiet (analytics, live updates), so wait for
+        # network idle only for a short time, for content that loads late.
+        try:
+            page.wait_for_load_state("networkidle", timeout=10_000)
+        except PlaywrightError:
+            pass
+        if not same_site(url, page.url):
+            raise InputError(
+                f"{url} sent the browser to {urlsplit(page.url).hostname}, which is probably a "
+                f"sign-in page. Sign in once with: uv run new_macro.py --sign-in {url}")
+        if res is not None and res.status >= 400:
+            raise InputError(f"{url} returned HTTP {res.status}")
+        body = page.evaluate(MAIN_CONTENT_JS)
+        if body.strip():
+            return sanitize_html(body, base_url=page.url)
+        return sanitize_html(page.content(), main_only=True, base_url=page.url)
+    finally:
+        page.close()
+
+
+def sign_in(ctx, url: str) -> None:
+    """Let the agent sign in to a site in the script's Firefox profile."""
+    page = ctx.new_page()
+    page.goto(url, timeout=60_000)
+    print(f"Sign in to {urlsplit(url).hostname} in the Firefox window.")
+    try:
+        input("Press Enter here after the page shows its content: ")
+    except EOFError:
+        pass
+    if not same_site(url, page.url):
+        raise InputError(f"the browser is still at {urlsplit(page.url).hostname}; the sign-in did not finish")
+    print("Signed in. The Firefox profile keeps the session for later runs.")
 
 
 # --- draft -----------------------------------------------------------------
@@ -249,6 +313,23 @@ def similar_macros(index: MacroIndex, text: str, limit: int = 5) -> list[dict]:
     return [index.macros[r[0]] for r in rows]
 
 
+def find_created(request, base: str, title: str, since: dt.datetime,
+                 attempts: int = 6, sleep=time.sleep) -> int:
+    """The ID of the macro named `title` that was created after `since`.
+
+    The search index can lag a few seconds behind, so try more than once.
+    """
+    for attempt in range(attempts):
+        data = scrape.get_json(request, f"{base}/api/v2/macros/search.json?query={quote(title)}", sleep=sleep)
+        for m in data.get("macros") or []:
+            created = dt.datetime.fromisoformat((m.get("created_at") or "").replace("Z", "+00:00"))
+            if m.get("title") == title and created >= since:
+                return m["id"]
+        sleep(5)
+    raise macro_ui.UIError(f"Zendesk accepted the form, but no macro named {title!r} appeared in the "
+                           "search. Look for it in Admin Center before you run the script again")
+
+
 def normalized_text(reply_html: str) -> str:
     return " ".join(html_to_text(reply_html).split())
 
@@ -276,12 +357,17 @@ def compare(draft: dict, saved: dict) -> list[str]:
 def parse_args(argv):
     ap = argparse.ArgumentParser(description="Create a new Zendesk macro from a URL or the clipboard.")
     src = ap.add_mutually_exclusive_group(required=True)
-    src.add_argument("url", nargs="?", help="Knowledge Base article or web page with the reply")
+    src.add_argument("url", nargs="?",
+                     help="the page with the reply text: a Knowledge Base article or any web page. "
+                          "This is not the template; --brand selects the template")
     src.add_argument("--clipboard", action="store_true", help="read the reply from the clipboard (macOS)")
     src.add_argument("--file", type=Path, help="read the reply from an .html or text file")
-    ap.add_argument("--brand", required=True, choices=sorted(rules.BRANDS))
-    ap.add_argument("--name", required=True, help="Category::Subcategory - Macro name")
-    ap.add_argument("--description", required=True, help="when to use the macro; add an example ticket ID")
+    src.add_argument("--sign-in", metavar="URL", dest="sign_in",
+                     help="open URL in Firefox to sign in to its site once, then stop")
+    ap.add_argument("--brand", choices=sorted(rules.BRANDS),
+                    help="thundermail, donors, or tfa; selects the template to clone")
+    ap.add_argument("--name", help="Category::Subcategory - Macro name")
+    ap.add_argument("--description", help="when to use the macro; add an example ticket ID")
     ap.add_argument("--tag", help="override the macro_<service>_<name> tag")
     ap.add_argument("--template", type=int, help="macro ID to clone (default: the brand template)")
     ap.add_argument("--no-greeting", action="store_true", help="do not add the template's greeting")
@@ -306,14 +392,18 @@ def main(argv=None) -> int:
     args = parse_args(argv)
     ctx_holder: dict = {}
 
-    def context():
-        """Start Firefox only when a step needs the Zendesk session."""
+    def context(zendesk: bool = True):
+        """Start Firefox only when a step needs it.
+
+        `zendesk=False` skips the Zendesk session check, for --sign-in.
+        """
         if "ctx" not in ctx_holder:
             from playwright.sync_api import sync_playwright
             ctx_holder["pw"] = sync_playwright().start()
-            ctx = scrape.open_context(ctx_holder["pw"], profile, headless=args.headless or args.dry_run)
+            headless = (args.headless or args.dry_run) and not args.sign_in
+            ctx = scrape.open_context(ctx_holder["pw"], profile, headless=headless)
             ctx_holder["ctx"] = ctx
-            if not scrape.signed_in_user(ctx.request, base):
+            if zendesk and not scrape.signed_in_user(ctx.request, base):
                 raise scrape.SessionError("Not signed in. Run: uv run scrape_macros.py --login")
         return ctx_holder["ctx"]
 
@@ -326,6 +416,13 @@ def main(argv=None) -> int:
             bad = scrape.unsafe_location(path, scrape.synced_locations())
             if bad:
                 raise InputError(f"refusing {label} directory {path}: it is inside {bad}")
+
+        if args.sign_in:
+            sign_in(context(zendesk=False), args.sign_in)
+            return 0
+        missing = [f"--{n}" for n in ("brand", "name", "description") if not getattr(args, n)]
+        if missing:
+            raise InputError("missing " + ", ".join(missing))
 
         brand = rules.BRANDS[args.brand]
         title = " ".join(args.name.split())
@@ -352,7 +449,7 @@ def main(argv=None) -> int:
         elif args.file:
             reply = read_file(args.file)
         else:
-            reply = read_url(context().request, base, args.url)
+            reply = read_url(context(), base, args.url)
         if not reply.strip():
             raise InputError("the source has no reply text")
         reply = rules.strip_en_us(reply)                                # rule 5
@@ -387,7 +484,8 @@ def main(argv=None) -> int:
         if problems:
             print("\nProblems:")
             for p in problems:
-                print(f"  - rule {p.rule}: {p.message}" + ("" if p.blocking else " (warning)"))
+                label = f"rule {p.rule}" if p.rule else "note"
+                print(f"  - {label}: {p.message}" + ("" if p.blocking else " (warning)"))
         if any(p.blocking for p in problems):
             print("\nFix the problems above. Nothing was sent to Zendesk.")
             return 1
@@ -403,7 +501,9 @@ def main(argv=None) -> int:
         state = macro_ui.fill_form(page, base, template_id, title, description, reply, tag)
         if normalized_text(state["reply_html"]) != normalized_text(reply):
             raise macro_ui.UIError("the reply editor changed the reply text; nothing was created")
-        new_id = macro_ui.submit(page)
+        # One minute of tolerance for a clock difference with Zendesk.
+        since = dt.datetime.now(dt.timezone.utc) - dt.timedelta(minutes=1)
+        new_id = macro_ui.submit(page) or find_created(context().request, base, title, since)
         print(f"\nCreated macro {new_id}: {macro_ui.macro_url(base, new_id)}")
 
         # 5. Compare what Zendesk saved with the draft.

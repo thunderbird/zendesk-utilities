@@ -18,6 +18,9 @@ Measured on 2026-11-27 with the installed Firefox release (moz-firefox):
   ("__pw_bidiInsertText is not a function"). Typing key by key works.
 - The reply editor is CKEditor 5. Its element has a `ckeditorInstance`
   with setData() and getData().
+- After Create, Admin Center goes back to the macro list
+  (/macros?access=shared&...), not to the new macro. So the page does not
+  show the new ID, and new_macro.py finds it through the API.
 """
 
 from __future__ import annotations
@@ -104,18 +107,24 @@ def fill_form(page, base: str, template_id: int, title: str, description: str,
     return state
 
 
-def submit(page, timeout_s: float = 30) -> int:
-    """Click Create and return the ID of the new macro."""
+def submit(page, timeout_s: float = 30) -> int | None:
+    """Click Create. Return the new macro ID if the page shows it, else None.
+
+    Raises UIError if the form stays open, which means Zendesk did not
+    accept it (for example a validation error).
+    """
     page.frame_locator(IFRAME).get_by_test_id(SAVE).click()
-    return wait_for_new_id(page, timeout_s)
+    return wait_for_form_to_close(page, timeout_s)
 
 
-def wait_for_new_id(page, timeout_s: float) -> int:
-    """After Create, Admin Center moves from /macros/new to /macros/<id>."""
+def wait_for_form_to_close(page, timeout_s: float) -> int | None:
     deadline = time.monotonic() + timeout_s
     while time.monotonic() < deadline:
         match = NEW_ID_RE.search(page.url)
         if match:
             return int(match.group(1))
+        if "/macros/new" not in page.url:
+            return None  # back on the macro list: created, ID unknown
         page.wait_for_timeout(500)
-    raise UIError(f"no new macro ID after {timeout_s:.0f}s; the page is at {page.url}")
+    raise UIError(f"the form did not close after {timeout_s:.0f}s; the page is at {page.url}. "
+                  "Look at the Firefox window for an error message")

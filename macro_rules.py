@@ -47,9 +47,11 @@ REQUIRED = {
 }
 LONG_REPLY_WORDS = 250
 
-# An en-us locale segment in a Help Center link, for example
-# https://support.tb.pro/hc/en-us/articles/123 -> /hc/articles/123.
-EN_US_RE = re.compile(r"(/hc)/en-us(?=/)", re.IGNORECASE)
+# An en-us locale segment in a Knowledge Base link. Both sites send a link
+# without a locale to the reader's own language:
+#   https://support.tb.pro/hc/en-us/articles/123 -> /hc/articles/123
+#   https://support.mozilla.org/en-US/kb/x       -> support.mozilla.org/kb/x
+EN_US_RE = re.compile(r"(/hc|support\.mozilla\.org)/en-us(?=/)", re.IGNORECASE)
 
 
 def action_values(macro: dict, *fields: str) -> list[str]:
@@ -90,9 +92,13 @@ def word_count(html_text: str) -> int:
 
 @dataclass
 class Problem:
-    rule: int
+    rule: int        # playbook rule number; 0 = a note that is not a playbook rule
     message: str
     blocking: bool = True
+
+
+# The team's fill-in markers, for example [[COUNTRY]].
+FILL_IN_RE = re.compile(r"\[\[[^\[\]]*\]\]")
 
 
 def check_macro(macro: dict, existing_titles: set[str] = frozenset()) -> list[Problem]:
@@ -115,6 +121,10 @@ def check_macro(macro: dict, existing_titles: set[str] = frozenset()) -> list[Pr
         if words > LONG_REPLY_WORDS:
             problems.append(Problem(4, f"the reply has {words} words; link to a Knowledge Base "
                                        "article for long instructions", blocking=False))
+    markers = sorted({m for r in replies for m in FILL_IN_RE.findall(r)})
+    if markers:
+        problems.append(Problem(0, "the reply has fill-in markers that agents must replace "
+                                   "before sending: " + ", ".join(markers), blocking=False))
     if any(EN_US_RE.search(r) for r in replies):
         problems.append(Problem(5, "a Knowledge Base link contains an en-us segment"))
 

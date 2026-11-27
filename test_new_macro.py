@@ -81,6 +81,11 @@ class Rules(unittest.TestCase):
         msgs = [p.message for p in rules.check_macro(d) if p.rule == 7]
         self.assertEqual(msgs, ["the macro does not set the ticket status", "the macro does not set the group"])
 
+    def test_fill_in_markers_are_a_warning(self):
+        problems = rules.check_macro(self.draft(reply_html="<p>From [[COUNTRY]] on [[DATE]] [[DATE]]</p>"))
+        self.assertEqual([(p.rule, p.blocking) for p in problems], [(0, False)])
+        self.assertIn("[[COUNTRY]], [[DATE]]", problems[0].message)
+
     def test_long_reply_is_only_a_warning(self):
         problems = rules.check_macro(self.draft(reply_html="<p>" + "word " * 300 + "</p>"))
         self.assertEqual([(p.rule, p.blocking) for p in problems], [(4, False)])
@@ -97,6 +102,9 @@ class Rules(unittest.TestCase):
         self.assertEqual(rules.strip_en_us('<a href="https://support.tb.pro/hc/en-US/articles/1-x">'),
                          '<a href="https://support.tb.pro/hc/articles/1-x">')
         self.assertEqual(rules.strip_en_us("/hc/en-us-old/x"), "/hc/en-us-old/x")
+        self.assertEqual(rules.strip_en_us("https://support.mozilla.org/en-US/kb/thunderbird#w_x"),
+                         "https://support.mozilla.org/kb/thunderbird#w_x")
+        self.assertEqual(rules.strip_en_us("https://example.com/en-us/kb/x"), "https://example.com/en-us/kb/x")
 
 
 class Draft(unittest.TestCase):
@@ -145,6 +153,10 @@ class Sources(unittest.TestCase):
                          '<p>Hi &lt;you&gt;,<br>line two</p><p>See <a href="https://support.tb.pro/hc/articles/1">'
                          'https://support.tb.pro/hc/articles/1</a>.</p>')
 
+    def test_redirect_to_another_site_is_a_sign_in_page(self):
+        self.assertTrue(nm.same_site("https://blog.example/post", "https://blog.example/post/"))
+        self.assertFalse(nm.same_site("https://blog.example/post", "https://accounts.google.com/x"))
+
     def test_kb_url_pattern(self):
         m = nm.KB_RE.match("https://support.tb.pro/hc/en-us/articles/57205706556179-Does-Thundermail-support-POP3")
         self.assertEqual(m.group(1), "57205706556179")
@@ -172,6 +184,39 @@ class Compare(unittest.TestCase):
         saved["actions"][3]["value"] = "<p>Goodbye</p>"
         saved["title"] = "Other"
         self.assertEqual(nm.compare(d, saved), ["title: 'Other'", "reply text"])
+
+
+class FindCreated(unittest.TestCase):
+    class Req:
+        def __init__(self, pages):
+            self.pages, self.urls = list(pages), []
+
+        def get(self, url, **_):
+            self.urls.append(url)
+            body = self.pages.pop(0)
+
+            class R:
+                status = 200
+                headers = {"content-type": "application/json"}
+
+                def json(self):
+                    return body
+            return R()
+
+    def test_finds_the_new_macro_by_exact_title_and_time(self):
+        since = nm.dt.datetime(2026, 11, 27, 17, 0, tzinfo=nm.dt.timezone.utc)
+        old = {"id": 1, "title": "A::B - C", "created_at": "2026-01-01T00:00:00Z"}
+        other = {"id": 2, "title": "A::B - C copy", "created_at": "2026-11-27T17:19:05Z"}
+        new = {"id": 3, "title": "A::B - C", "created_at": "2026-11-27T17:19:05Z"}
+        req = self.Req([{"macros": [old]}, {"macros": [old, other, new]}])
+        self.assertEqual(nm.find_created(req, "https://b", "A::B - C", since, sleep=lambda _: None), 3)
+        self.assertIn("/api/v2/macros/search.json?query=A%3A%3AB%20-%20C", req.urls[0])
+
+    def test_gives_up_with_a_clear_error(self):
+        since = nm.dt.datetime(2026, 11, 27, tzinfo=nm.dt.timezone.utc)
+        req = self.Req([{"macros": []}] * 3)
+        with self.assertRaises(macro_ui.UIError):
+            nm.find_created(req, "https://b", "X", since, attempts=3, sleep=lambda _: None)
 
 
 class UIHelpers(unittest.TestCase):
@@ -229,6 +274,13 @@ class CommandLine(unittest.TestCase):
                           "--name", "Donors::A - B", "--description", "d", "--dry-run"])
         self.assertEqual(rc, 1)
         self.assertIn("--template", err.getvalue())
+
+    def test_brand_name_and_description_are_required(self):
+        out, err = io.StringIO(), io.StringIO()
+        with redirect_stdout(out), redirect_stderr(err):
+            rc = nm.main(["--file", str(self.reply), "--data", str(self.data), "--dry-run"])
+        self.assertEqual(rc, 1)
+        self.assertIn("missing --brand, --name, --description", err.getvalue())
 
     def test_drafts_in_repository_are_refused(self):
         out, err = io.StringIO(), io.StringIO()

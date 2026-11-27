@@ -5,10 +5,12 @@
 """Offline tests for macro_search.py. The macros here are made up."""
 
 import http.client
+import io
 import json
 import tempfile
 import threading
 import unittest
+from contextlib import redirect_stderr
 from pathlib import Path
 
 import macro_search as ms
@@ -166,6 +168,28 @@ class Dynamic(unittest.TestCase):
         self.assertEqual(detail.count('<span class="dc">{{dc.signature}}</span>'), 2)  # reply + action
 
 
+class FillIn(unittest.TestCase):
+    def test_markers_are_orange(self):
+        self.assertEqual(ms.show("Donations from [[COUNTRY]] on [[DATE]]"),
+                         'Donations from <span class="fill">[[COUNTRY]]</span> on '
+                         '<span class="fill">[[DATE]]</span>')
+
+    def test_single_brackets_and_escaping(self):
+        self.assertEqual(ms.show("a [b] [[<x>]]"), 'a [b] <span class="fill">[[&lt;x&gt;]]</span>')
+
+    def test_triple_bracket_and_cut_markers(self):
+        self.assertEqual(ms.show("[[[ ___ ]]"), '[<span class="fill">[[ ___ ]]</span>')
+        self.assertEqual(ms.marked("Hi. [[Insert questions…"),
+                         'Hi. <span class="fill">[[Insert questions…</span>')
+        self.assertEqual(ms.marked("…AMOUNT]] was charged"),
+                         '<span class="fill">…AMOUNT]]</span> was charged')
+
+    def test_hit_inside_marker_and_placeholder_together(self):
+        text = "{{ticket.id}} [[" + ms.HIT_START + "DATE" + ms.HIT_END + "]]"
+        self.assertEqual(ms.marked(text), '<span class="dc">{{ticket.id}}</span> '
+                                          '<span class="fill">[[<mark>DATE</mark>]]</span>')
+
+
 class Server(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -218,8 +242,10 @@ class Server(unittest.TestCase):
 
 class Main(unittest.TestCase):
     def test_missing_data_is_a_clear_error(self):
-        with tempfile.TemporaryDirectory() as tmp:
+        err = io.StringIO()
+        with tempfile.TemporaryDirectory() as tmp, redirect_stderr(err):
             self.assertEqual(ms.main(["--data", tmp, "--port", "0"]), 1)
+        self.assertIn("macros.json not found. Run: uv run scrape_macros.py", err.getvalue())
 
     def test_load_list_reads_api_shape(self):
         with tempfile.TemporaryDirectory() as tmp:

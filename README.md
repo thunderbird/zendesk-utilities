@@ -36,26 +36,51 @@ The app is at `http://127.0.0.1:8765/`. It searches the titles, descriptions, re
 
 ## Create a new macro
 
-`new_macro.py` creates a new macro from a Knowledge Base article, another web page, the clipboard, or a file. It follows the team's macro creation process.
+`new_macro.py` creates a new macro that follows the team's macro creation process. You give the reply text, the brand, the name, and the description.
 
 ```sh
 uv run new_macro.py --brand thundermail \
     --name "Thundermail::Accounts - Macro name" \
     --description "Use when ... Example ticket: #1234" \
-    https://support.tb.pro/hc/en-us/articles/<id>
+    https://support.tb.pro/hc/en-us/articles/57205706556179-Does-Thundermail-support-POP3
 ```
 
-Instead of the URL, you can give `--clipboard` (macOS) or `--file reply.html`. The brands are `thundermail`, `donors`, and `tfa`. Donor Support has no team template yet, so for `donors` you must also give `--template <macro ID>`.
+### The reply text
 
-The script does these steps:
+The URL is the page with the reply text. It is not the template. Copy the address from the browser. You can give one of these sources:
+
+- A Knowledge Base article on `support.tb.pro`. The script reads the article through your Zendesk session.
+- Any other web page, for example a blog post. The script opens the page in Firefox and keeps only the main article text. It drops menus, headers, footers, scripts, and images.
+- `--clipboard`: the text that you copied (macOS only). The script keeps the formatting and the links.
+- `--file reply.html` or `--file reply.txt`: a file with the reply.
+
+If a web page needs a sign-in, the script stops with an error. Then sign in one time in the script's Firefox profile, and run the command again:
+
+```sh
+uv run new_macro.py --sign-in https://example.com/page
+```
+
+### The template
+
+You do not give the template. `--brand` selects it:
+
+| `--brand` | Brand | Template |
+|---|---|---|
+| `thundermail` | Thundermail | 42980135784467, "Thundermail::Category::Subcategory::New macro template" |
+| `tfa` | Thunderbird App Store Reviews | 50467223418771, "Thunderbird::Play Store Reviews::Macro Template (CLONE ME)" |
+| `donors` | Donor Support | None. You must give `--template <macro ID>`. |
+
+The macro ID is the number at the end of the macro address in Admin Center, for example `https://tbpro.zendesk.com/admin/workspaces/agent-workspace/macros/42980135784467`. The template must be in your local copy, so run `uv run scrape_macros.py` first. The new macro gets all the actions of the template, except the reply and the tag.
+
+### What the script does
 
 1. It lists similar macros. If one of them already covers the case, stop.
-2. It removes `en-us` from Knowledge Base links and adds the template greeting.
-3. It writes a draft to `~/zendesk-data/drafts/` and checks it against the process rules.
-4. After you type `create`, it clones the brand template in Admin Center, fills in the form, and clicks Create.
+2. It removes `en-us` from Knowledge Base links. If the reply does not greet the requester, it adds the greeting of the template. To prevent this, add `--no-greeting`.
+3. It writes a draft to `~/zendesk-data/drafts/` and checks it against the process rules. If there is a problem, it stops.
+4. After you type `create`, it clones the template in Admin Center, fills in the form, and clicks Create. You can watch it in the Firefox window.
 5. It downloads the new macro and compares it with the draft.
 
-To stop before Admin Center, add `--dry-run`. After the script finishes, test the macro on a new ticket, delete the test ticket, and ask for a review.
+To stop before Admin Center, add `--dry-run`. After the script finishes, test the macro on a new ticket, delete the test ticket, and ask for a review. The script never changes or deletes an existing macro.
 
 ## Tests
 
