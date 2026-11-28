@@ -100,8 +100,10 @@ class SharedCasesInBrowser(BrowserTestCase):
 
     def test_search(self):
         for case in CASES["search"]:
-            with self.subTest(q=case["q"], status=case["status"], group=case["group"], field=case["field"]):
-                got = self.page.evaluate("c => window.macroSearchTest.search(c.q, c.status, c.group, c.field)", case)
+            with self.subTest(q=case["q"], status=case["status"], group=case["group"], field=case["field"],
+                              category=case["category"]):
+                got = self.page.evaluate(
+                    "c => window.macroSearchTest.search(c.q, c.status, c.group, c.field, c.category)", case)
                 self.assertEqual(got, case["results"])
 
     def test_marked(self):
@@ -121,6 +123,7 @@ class SharedCasesInBrowser(BrowserTestCase):
                          [c["text"] for c in CASES["available_for"]])
         self.assertEqual(self.page.evaluate(f"() => {t}.groupChoices()"), CASES["group_choices"])
         self.assertEqual(self.page.evaluate(f"() => {t}.fieldChoices()"), CASES["field_choices"])
+        self.assertEqual(self.page.evaluate(f"() => {t}.categoryChoices()"), CASES["category_choices"])
         self.assertEqual(self.page.evaluate(f"vs => vs.map(v => {t}.exportLabel(v))",
                                             [c["value"] for c in CASES["export_label"]]),
                          [c["label"] for c in CASES["export_label"]])
@@ -161,6 +164,22 @@ class LoadAndSearch(BrowserTestCase):
         self.page.click("text=Back to search")
         self.page.wait_for_selector("form#search")
         self.assertEqual(self.page.input_value("input[name=q]"), "refund")
+
+    def test_category_filter_and_link(self):
+        self.page.evaluate("([m, g]) => window.macroSearchTest.load(m, g)",
+                           [{"macros": CASES["macros"]}, {"groups": CASES["groups"]}])
+        self.page.evaluate("location.hash = '#/?q=zebra'")
+        self.page.wait_for_selector("select[name=category]")
+        self.page.select_option("select[name=category]", "Tie")
+        self.page.click("button[type=submit]")
+        self.page.wait_for_function("location.hash.includes('category=Tie')")
+        self.assertEqual(self.page.locator(".result").count(), 2)
+        self.page.evaluate("location.hash = '#/'")
+        self.page.wait_for_selector(".result")
+        self.page.click(".result .meta a:text('(no category)')")
+        self.page.wait_for_function("location.hash === '#/?category=%3A%3A'")
+        self.assertEqual(self.page.input_value("select[name=category]"), "::")
+        self.assertTrue(self.page.inner_text(".count").startswith("3 of "))
 
     def test_escaped_title_renders_as_text(self):
         self.page.evaluate("([m, g]) => window.macroSearchTest.load(m, g)",

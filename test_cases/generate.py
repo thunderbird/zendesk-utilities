@@ -58,6 +58,7 @@ macros = [
     macro(9, "<b>Escape</b> & \"quotes\" 'single'", "<p>&lt;img src=x onerror=alert(1)&gt; [[DATE]]</p>"),
     macro(10, "Cut::Words - Apostrophe", "<p>" + " ".join(f"word{i}" for i in range(30))
           + " we know you'd like a zebrafish now, and {{ticket.requester.first_name}} too</p>"),
+    macro(11, "  donation :: Card :: Update", "<p>Change the card.</p>"),
 ]
 groups = [{"id": 100, "name": "Donor Support"}, {"id": 200, "name": "Tier 2"},
           {"id": 999, "name": "Old team", "deleted": True}]
@@ -71,10 +72,15 @@ queries = [
     {"q": "refund", "status": "active"}, {"q": "", "status": "inactive"}, {"q": "", "group": "100"},
     {"q": "", "group": "none"}, {"q": "", "field": "priority"}, {"q": "hello", "group": "200"},
     {"q": "escape"}, {"q": "settings"}, {"q": "zebrafish"}, {"q": "requester"},
+    {"q": "", "category": "Donation"}, {"q": "", "category": "DONATION"}, {"q": "refund", "category": "donation"},
+    {"q": "", "category": "Tie"}, {"q": "", "category": "::"}, {"q": "", "category": "Card"},
+    {"q": "", "category": "Lists::Nested"}, {"q": "", "category": "nothing"},
+    {"q": "", "status": "active", "group": "100", "category": "Thundermail"},
 ]
 cases = []
 for qd in queries:
-    params = {"q": qd.get("q", ""), "status": qd.get("status", "all"), "group": qd.get("group", ""), "field": qd.get("field", "")}
+    params = {"q": qd.get("q", ""), "status": qd.get("status", "all"), "group": qd.get("group", ""),
+              "field": qd.get("field", ""), "category": qd.get("category", "")}
     res = index.search(**params)
     cases.append({**params, "ids": [r["id"] for r in res],
                   "results": [{"id": r["id"], "title_html": ms.marked(r["title"]), "snippet_html": ms.marked(r["snippet"])} for r in res]})
@@ -97,11 +103,13 @@ doc = {
     "export_label": [{"value": v, "label": ms.export_label(v)} for v in ("2026-11-27T18:00:05Z", None, "yesterday")],
     "group_choices": [list(c) for c in index.group_choices()],
     "field_choices": [list(c) for c in index.field_choices()],
+    "category_choices": [list(c) for c in index.category_choices()],
 }
 out = REPO / "test_cases" / "search.json"
 out.write_text(json.dumps(doc, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
 for c in cases:
-    print(repr(c["q"]), c["status"], c["group"], c["field"], "->", c["ids"])
+    print(repr(c["q"]), c["status"], c["group"], c["field"], c["category"], "->", c["ids"])
 for qq in ("identity", "zebrafish", "requester"):
     for r in next(c for c in cases if c["q"] == qq)["results"]: print("snippet:", qq, r["id"], r["snippet_html"])
+print("categories:", index.category_choices())
 for r in next(c for c in cases if c["q"] == "refund")["results"]: print("refund:", r["title_html"], "|", r["snippet_html"])

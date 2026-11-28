@@ -16,7 +16,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'sha256-sWbLBshPi+XnuWApI8sxq/O+gwIiztdp8N9+OPJs74k='; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'sha256-1LNncRDRjTbCmwmgdIL5Mumb0vmr4wQr/dYyppvAdN0='; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Zendesk macros</title>
@@ -128,6 +128,15 @@ button.link { background: none; border: none; color: #0b57d0; cursor: pointer; p
     const r = macro.restriction || {};
     if (r.type !== "Group") return [];
     return Array.isArray(r.ids) && r.ids.length ? [...r.ids] : (r.id ? [r.id] : []);
+  }
+
+  const NO_CATEGORY = "::";  // filter value for titles without a category
+
+  // The text before the first "::" in the title, or "" without one (issue #11).
+  function macroCategory(macro) {
+    const title = asText(macro.title);
+    const i = title.indexOf("::");
+    return i >= 0 ? title.slice(0, i).trim() : "";
   }
 
   // --- query and matching (macro_search.py: the same section) ---------------
@@ -295,7 +304,22 @@ button.link { background: none; border: none; color: #0b57d0; cursor: pointer; p
     return [...counts].sort((x, y) => (x[0] < y[0] ? -1 : x[0] > y[0] ? 1 : 0));
   }
 
-  function search(q = "", status = "all", group = "", field = "") {
+  // Letter case does not matter. The label is the spelling of the first macro in title order.
+  function categoryChoices() {
+    const labels = new Map(), counts = new Map();
+    for (const id of index.order) {
+      const c = macroCategory(index.macros.get(id)), k = c.toLowerCase();
+      if (!labels.has(k)) labels.set(k, c);
+      counts.set(k, (counts.get(k) || 0) + 1);
+    }
+    const choices = [...counts].filter(([k]) => k).map(([k, n]) => [labels.get(k), n]);
+    const key = (c) => c[0].toLowerCase();
+    choices.sort((x, y) => (key(x) < key(y) ? -1 : key(x) > key(y) ? 1 : 0));
+    if (counts.has("")) choices.push([NO_CATEGORY, counts.get("")]);
+    return choices;
+  }
+
+  function search(q = "", status = "all", group = "", field = "", category = "") {
     const terms = queryTerms(q);
     let rows;
     if (terms.length) {
@@ -335,6 +359,8 @@ button.link { background: none; border: none; color: #0b57d0; cursor: pointer; p
       if (group === "none" && groupIds(m).length) continue;
       if (group !== "" && group !== "none" && !groupIds(m).map(String).includes(group)) continue;
       if (field && !actions(m).some((a) => a.field === field)) continue;
+      if (category && macroCategory(m).toLowerCase() !==
+          (category === NO_CATEGORY ? "" : category.toLowerCase())) continue;
       results.push({ id, title, snippet: snip, macro: m });
     }
     return results;
@@ -380,11 +406,20 @@ button.link { background: none; border: none; color: #0b57d0; cursor: pointer; p
     return qs.toString();
   }
 
+  const categoryLabel = (value) => (value === NO_CATEGORY ? "(no category)" : value);
+
+  // A link that shows all macros of the macro's category.
+  function categoryLink(m) {
+    const value = macroCategory(m) || NO_CATEGORY;
+    return `<a href="#/?${esc(queryString({ category: value }))}">${esc(categoryLabel(value))}</a>`;
+  }
+
   function renderSearch(params) {
     const q = params.q || "", group = params.group || "", field = params.field || "";
+    const category = params.category || "";
     const status = ["active", "inactive"].includes(params.status) ? params.status : "all";
-    const results = search(q, status, group, field);
-    const qs = queryString({ q, status: params.status || "", group, field });
+    const results = search(q, status, group, field, category);
+    const qs = queryString({ q, status: params.status || "", group, field, category });
     const suffix = qs ? `?${qs}` : "";
     const form =
       '<form class="search" id="search">' +
@@ -395,12 +430,16 @@ button.link { background: none; border: none; color: #0b57d0; cursor: pointer; p
       options([["", "Any group"], ...groupChoices().map(([v, label, n]) => [v, `${label} (${n})`])], group) +
       '</select><select name="field" aria-label="Changes field">' +
       options([["", "Any field"], ...fieldChoices().map(([f, n]) => [f, `${f} (${n})`])], field) +
+      '</select><select name="category" aria-label="Category">' +
+      options([["", "All categories"], ...categoryChoices().map(([c, n]) => [c, `${categoryLabel(c)} (${n})`])],
+              category) +
       '</select><button type="submit">Search</button></form>';
     const shown = results.slice(0, MAX_RESULTS);
     const items = shown.map((r) =>
       '<div class="result">' +
       `<h2><a href="#/macro/${r.id}${esc(suffix)}">${marked(r.title)}</a></h2>` +
-      `<div class="meta">${statusBadge(r.macro)} · ${esc(availableFor(r.macro))} · ${zendeskLink(r.id)}</div>` +
+      `<div class="meta">${statusBadge(r.macro)} · ${categoryLink(r.macro)} · ${esc(availableFor(r.macro))} · ` +
+      `${zendeskLink(r.id)}</div>` +
       (r.snippet ? `<p class="snippet">${marked(r.snippet)}</p>` : "") +
       "</div>").join("");
     let count = `${results.length} of ${index.macros.size} macros`;
@@ -512,7 +551,8 @@ button.link { background: none; border: none; color: #0b57d0; cursor: pointer; p
     event.preventDefault();
     const data = new FormData(event.target);
     const qs = queryString({ q: data.get("q"), status: data.get("status") === "all" ? "" : data.get("status"),
-                             group: data.get("group"), field: data.get("field") });
+                             group: data.get("group"), field: data.get("field"),
+                             category: data.get("category") });
     location.hash = qs ? `#/?${qs}` : "#/";
   });
   app.addEventListener("change", (event) => {
@@ -541,14 +581,15 @@ button.link { background: none; border: none; color: #0b57d0; cursor: pointer; p
   // For test_macro_search_html.py. It reads nothing and sends nothing.
   window.macroSearchTest = Object.freeze({
     load(macrosDoc, groupsDoc) { useDocuments(macrosDoc, groupsDoc); },
-    search(q, status, group, field) {
-      return search(q, status, group, field).map((r) =>
+    search(q, status, group, field, category) {
+      return search(q, status, group, field, category).map((r) =>
         ({ id: r.id, title_html: marked(r.title), snippet_html: marked(r.snippet) }));
     },
     marked, htmlToText, exportLabel,
     availableFor(id) { return availableFor(index.macros.get(id)); },
     groupChoices() { return groupChoices(); },
     fieldChoices() { return fieldChoices(); },
+    categoryChoices() { return categoryChoices(); },
   });
 
   route();

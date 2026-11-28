@@ -107,6 +107,15 @@ class Search(unittest.TestCase):
         self.assertEqual(self.ids(group="100"), [1])
         self.assertEqual(self.ids(group="none"), [3, 2])
         self.assertEqual(self.ids(field="priority"), [3])
+        self.assertEqual(self.ids(category="THUNDERBIRD"), [2])
+        self.assertEqual(self.ids(category="::"), [4, 3])
+        self.assertEqual(self.ids(q="refund", category="Donation"), [1])
+
+    def test_category_is_the_text_before_the_first_separator(self):
+        self.assertEqual(ms.macro_category({"title": " A b :: C::D"}), "A b")
+        self.assertEqual(ms.macro_category({"title": "No separator"}), "")
+        self.assertEqual(ms.macro_category({"title": "::Empty"}), "")
+        self.assertEqual(ms.macro_category({}), "")
 
     def test_group_names_fall_back_to_ids(self):
         self.assertEqual(self.index.available_for(MACROS[0]), "Donor Support")
@@ -128,6 +137,22 @@ class Pages(unittest.TestCase):
             self.assertNotIn("<script>alert", body)
             self.assertNotIn("<img", body)
         self.assertIn("&lt;script&gt;", ms.render_macro(index, 5, ""))
+
+    def test_category_filter_and_links(self):
+        index = ms.MacroIndex(MACROS + [macro(6, '<b>x</b> & "y"::Evil')], GROUPS)
+        body = ms.render_search(index, {"category": "donation"})
+        self.assertIn('<select name="category" aria-label="Category"><option value="">All categories</option>', body)
+        self.assertIn('<option value="Donation">Donation (1)</option>', body)
+        self.assertIn('<option value="::">(no category) (2)</option>', body)
+        self.assertIn("1 of 5 macros", body)
+        self.assertIn('<a href="/?category=Donation">Donation</a>', body)
+        none = ms.render_search(index, {"category": "::"})
+        self.assertIn("2 of 5 macros", none)
+        self.assertIn('<a href="/?category=%3A%3A">(no category)</a>', none)
+        evil = ms.render_search(index, {"category": '<b>x</b> & "y"'})
+        self.assertIn("1 of 5 macros", evil)
+        self.assertNotIn("<b>x", evil)
+        self.assertIn("&lt;b&gt;x&lt;/b&gt; &amp; &quot;y&quot;", evil)
 
     def test_search_input_is_escaped(self):
         body = ms.render_search(ms.MacroIndex(MACROS, GROUPS), {"q": '"><script>x</script>'})

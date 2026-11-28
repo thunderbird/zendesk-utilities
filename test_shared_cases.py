@@ -18,7 +18,7 @@ CASES = json.loads((Path(__file__).parent / "test_cases" / "search.json").read_t
 
 
 def label(case) -> str:
-    return f"q={case['q']!r} status={case['status']} group={case['group']!r} field={case['field']!r}"
+    return f"q={case['q']!r} status={case['status']} group={case['group']!r} field={case['field']!r} category={case['category']!r}"
 
 
 class SharedCases(unittest.TestCase):
@@ -29,7 +29,7 @@ class SharedCases(unittest.TestCase):
     def test_search(self):
         for case in CASES["search"]:
             with self.subTest(label(case)):
-                res = self.index.search(case["q"], case["status"], case["group"], case["field"])
+                res = self.index.search(case["q"], case["status"], case["group"], case["field"], case["category"])
                 got = [{"id": r["id"], "title_html": ms.marked(r["title"]),
                         "snippet_html": ms.marked(r["snippet"])} for r in res]
                 self.assertEqual(got, case["results"])
@@ -51,6 +51,7 @@ class SharedCases(unittest.TestCase):
             self.assertEqual(self.index.available_for(macros[case["id"]]), case["text"])
         self.assertEqual([list(c) for c in self.index.group_choices()], CASES["group_choices"])
         self.assertEqual([list(c) for c in self.index.field_choices()], CASES["field_choices"])
+        self.assertEqual([list(c) for c in self.index.category_choices()], CASES["category_choices"])
         for case in CASES["export_label"]:
             self.assertEqual(ms.export_label(case["value"]), case["label"])
 
