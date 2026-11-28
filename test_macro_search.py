@@ -82,8 +82,8 @@ class Search(unittest.TestCase):
     def setUp(self):
         self.index = ms.MacroIndex(MACROS, GROUPS)
 
-    def ids(self, **kw):
-        return [r["id"] for r in self.index.search(**kw)]
+    def ids(self, q="", sort="", **filters):
+        return [r["id"] for r in self.index.search(q, filters, sort)]
 
     def test_empty_query_lists_all_by_title(self):
         self.assertEqual(self.ids(), [4, 1, 3, 2])
@@ -110,6 +110,18 @@ class Search(unittest.TestCase):
         self.assertEqual(self.ids(category="THUNDERBIRD"), [2])
         self.assertEqual(self.ids(category="::"), [4, 3])
         self.assertEqual(self.ids(q="refund", category="Donation"), [1])
+
+    def test_or_inside_a_group_and_between_groups(self):
+        self.assertEqual(self.ids(category=["Donation", "Thunderbird"]), [1, 2])
+        self.assertEqual(self.ids(category=["Donation", "::"], status=["active"]), [4, 1])
+        self.assertEqual(self.ids(group=["100", "999"], tag=["donor"]), [1])
+        self.assertEqual(self.ids(status="all"), [4, 1, 3, 2])  # an old URL value
+
+    def test_sort(self):
+        self.assertEqual(self.ids(sort="-title"), [2, 3, 1, 4])
+        self.assertEqual(self.ids(q="refund", sort="title"), [1, 3])
+        self.assertEqual(self.ids(sort="group"), [3, 2, 1, 4])  # All agents, Donor Support, Old team
+        self.assertEqual(self.ids(sort="bogus"), [4, 1, 3, 2])
 
     def test_category_is_the_text_before_the_first_separator(self):
         self.assertEqual(ms.macro_category({"title": " A b :: C::D"}), "A b")
@@ -138,21 +150,45 @@ class Pages(unittest.TestCase):
             self.assertNotIn("<img", body)
         self.assertIn("&lt;script&gt;", ms.render_macro(index, 5, ""))
 
-    def test_category_filter_and_links(self):
+    def test_tag_picker_and_selected_row(self):
         index = ms.MacroIndex(MACROS + [macro(6, '<b>x</b> & "y"::Evil')], GROUPS)
-        body = ms.render_search(index, {"category": "donation"})
-        self.assertIn('<select name="category" aria-label="Category"><option value="">All categories</option>', body)
-        self.assertIn('<option value="Donation">Donation (1)</option>', body)
-        self.assertIn('<option value="::">(no category) (2)</option>', body)
-        self.assertIn("1 of 5 macros", body)
-        self.assertIn('<a href="/?category=Donation">Donation</a>', body)
-        none = ms.render_search(index, {"category": "::"})
-        self.assertIn("2 of 5 macros", none)
-        self.assertIn('<a href="/?category=%3A%3A">(no category)</a>', none)
+        body = ms.render_search(index, {"category": ["donation", "::"], "status": ["active"]})
+        self.assertIn('<details class="tagpicker"><summary>Filter by tag</summary>', body)
+        self.assertIn('<details class="tag-group" open><summary>Category (4)</summary>', body)
+        self.assertIn('<a class="chip on" href="/?category=%3A%3A&amp;status=active&amp;picker=open">'
+                      'Donation<span class="n">1</span></a>', body)
+        self.assertIn('<a class="chip" href="/?category=donation&amp;category=%3A%3A&amp;category=Thunderbird'
+                      '&amp;status=active&amp;picker=open">Thunderbird<span class="n">1</span></a>', body)
+        self.assertIn("2 of 5 macros", body)
+        self.assertIn('<p class="selected">Category: <a class="chip on" href="/?category=%3A%3A&amp;status=active" '
+                      'title="Remove">donation ✕</a> or ', body)
+        self.assertIn('<input type="hidden" name="category" value="donation">'
+                      '<input type="hidden" name="category" value="::">'
+                      '<input type="hidden" name="status" value="active">', body)
+        picker = ms.render_search(index, {"picker": "open"})
+        self.assertIn('<details class="tagpicker" open>', picker)
+        self.assertNotIn('class="selected"', picker)
         evil = ms.render_search(index, {"category": '<b>x</b> & "y"'})
         self.assertIn("1 of 5 macros", evil)
         self.assertNotIn("<b>x", evil)
-        self.assertIn("&lt;b&gt;x&lt;/b&gt; &amp; &quot;y&quot;", evil)
+        self.assertIn("&lt;b&gt;x&lt;/b&gt; &amp; &quot;y&quot; ✕", evil)
+
+    def test_result_chips_add_to_the_filter(self):
+        body = ms.render_search(ms.MacroIndex(MACROS, GROUPS), {"q": "refund", "tag": "donor"})
+        self.assertIn('<a class="chip" href="/?q=refund&amp;group=100&amp;tag=donor">Donor Support</a>', body)
+        self.assertIn('<a class="chip on" href="/?q=refund&amp;tag=donor">donor</a>', body)
+        self.assertIn('<a href="/macro/1?q=refund&amp;tag=donor">', body)
+
+    def test_table_view_and_sort_links(self):
+        index = ms.MacroIndex(MACROS, GROUPS)
+        body = ms.render_search(index, {"view": "table", "sort": "-updated"})
+        self.assertIn('<th aria-sort="descending"><a href="/?view=table&amp;sort=updated">Updated ▼</a></th>', body)
+        self.assertIn('<th aria-sort="none"><a href="/?view=table&amp;sort=title">Title</a></th>', body)
+        self.assertIn('<a class="first" href="/?sort=-updated">List</a>'
+                      '<a class="last on" href="/?view=table&amp;sort=-updated" aria-current="true">Table</a>', body)
+        self.assertIn('<input type="hidden" name="view" value="table">', body)
+        self.assertNotIn('class="result"', body)
+        self.assertIn('class="result"', ms.render_search(index, {}))
 
     def test_reply_links_on_the_detail_page(self):
         reply = ('<p><a href="https://roadmaps.example.org/ios/"><b>Our roadmap</b></a>. '

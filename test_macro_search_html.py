@@ -100,10 +100,8 @@ class SharedCasesInBrowser(BrowserTestCase):
 
     def test_search(self):
         for case in CASES["search"]:
-            with self.subTest(q=case["q"], status=case["status"], group=case["group"], field=case["field"],
-                              category=case["category"]):
-                got = self.page.evaluate(
-                    "c => window.macroSearchTest.search(c.q, c.status, c.group, c.field, c.category)", case)
+            with self.subTest(q=case["q"], filters=case["filters"], sort=case["sort"]):
+                got = self.page.evaluate("c => window.macroSearchTest.search(c.q, c.filters, c.sort)", case)
                 self.assertEqual(got, case["results"])
 
     def test_marked(self):
@@ -133,6 +131,18 @@ class SharedCasesInBrowser(BrowserTestCase):
                                             [c["value"] for c in CASES["export_label"]]),
                          [c["label"] for c in CASES["export_label"]])
 
+    def test_tag_filters_and_sorting(self):
+        t = "window.macroSearchTest"
+        self.assertEqual(self.page.evaluate(f"() => {t}.facetChoices()"), CASES["facet_choices"])
+        self.assertEqual(self.page.evaluate(f"cs => cs.map(c => {t}.parseFilters(c.params))", CASES["parse_filters"]),
+                         [c["filters"] for c in CASES["parse_filters"]])
+        self.assertEqual(self.page.evaluate(f"cs => cs.map(c => {t}.parseSort(c.value))", CASES["parse_sort"]),
+                         [c["sort"] for c in CASES["parse_sort"]])
+        self.assertEqual(self.page.evaluate(f"cs => cs.map(c => {t}.nextSort(c.current, c.column))", CASES["next_sort"]),
+                         [c["sort"] for c in CASES["next_sort"]])
+        self.assertEqual(self.page.evaluate(f"cs => cs.map(c => {t}.searchQuery(...c.args))", CASES["search_query"]),
+                         [c["query"] for c in CASES["search_query"]])
+
 
 class LoadAndSearch(BrowserTestCase):
     """The way a colleague uses the page: choose files, search, open a macro."""
@@ -153,10 +163,14 @@ class LoadAndSearch(BrowserTestCase):
                          f"{len(CASES['macros'])} of {len(CASES['macros'])} macros · "
                          "Macros exported 2026-11-27 18:00 UTC")
 
+        self.page.click("summary:text('Filter by tag')")
+        self.page.click(".tagpicker .chip:text('active')")
+        self.page.wait_for_function("location.hash === '#/?status=active&picker=open'")
+        self.assertTrue(self.page.eval_on_selector("details.tagpicker", "d => d.open"))
         self.page.fill("input[name=q]", "refund")
-        self.page.select_option("select[name=status]", "active")
         self.page.click("button[type=submit]")
-        self.page.wait_for_function("location.hash.includes('q=refund')")
+        self.page.wait_for_function("location.hash === '#/?q=refund&status=active'")
+        self.assertEqual(self.page.inner_text(".selected"), "Status: active ✕ · Clear all")
         self.assertEqual(self.page.inner_text(".count"),
                          f"1 of {len(CASES['macros'])} macros · Macros exported 2026-11-27 18:00 UTC")
         self.assertEqual(self.page.inner_html(".result h2 a"), "Donation::<mark>Refund</mark> request")
@@ -170,21 +184,48 @@ class LoadAndSearch(BrowserTestCase):
         self.page.wait_for_selector("form#search")
         self.assertEqual(self.page.input_value("input[name=q]"), "refund")
 
-    def test_category_filter_and_link(self):
+    def test_tag_chips_or_inside_a_group_and_between_groups(self):
         self.page.evaluate("([m, g]) => window.macroSearchTest.load(m, g)",
                            [{"macros": CASES["macros"]}, {"groups": CASES["groups"]}])
-        self.page.evaluate("location.hash = '#/?q=zebra'")
-        self.page.wait_for_selector("select[name=category]")
-        self.page.select_option("select[name=category]", "Tie")
-        self.page.click("button[type=submit]")
-        self.page.wait_for_function("location.hash.includes('category=Tie')")
+        self.page.evaluate("location.hash = '#/?q=zebra&picker=open'")
+        self.page.wait_for_selector("details.tagpicker[open]")
+        self.page.click(".tagpicker .chip:text('Tie')")
+        self.page.wait_for_function("location.hash === '#/?q=zebra&category=Tie&picker=open'")
         self.assertEqual(self.page.locator(".result").count(), 2)
+        self.page.click(".tagpicker .chip:text('Cut')")
+        self.page.wait_for_function("location.hash === '#/?q=zebra&category=Tie&category=Cut&picker=open'")
+        self.assertEqual(self.page.locator(".result").count(), 3)
+        self.assertEqual(self.page.inner_text(".selected"), "Category: Tie ✕ or Cut ✕ · Clear all")
+        self.page.click(".tagpicker .chip:text('inactive')")
+        self.page.wait_for_selector("text=0 of 13 macros")
+        self.page.click(".selected .chip:text('inactive ✕')")
+        self.page.wait_for_selector("text=3 of 13 macros")
+        # A chip on a result adds its value, and a submitted query keeps the filters.
         self.page.evaluate("location.hash = '#/'")
         self.page.wait_for_selector(".result")
-        self.page.click(".result .meta a:text('(no category)')")
+        self.page.click(".result .meta a.chip:text('(no category)')")
         self.page.wait_for_function("location.hash === '#/?category=%3A%3A'")
-        self.assertEqual(self.page.input_value("select[name=category]"), "::")
         self.assertTrue(self.page.inner_text(".count").startswith("3 of "))
+        self.page.fill("input[name=q]", "hello")
+        self.page.click("button[type=submit]")
+        self.page.wait_for_function("location.hash === '#/?q=hello&category=%3A%3A'")
+        self.assertEqual(self.page.locator(".result").count(), 1)
+
+    def test_table_view_and_sorting(self):
+        self.page.evaluate("([m, g]) => window.macroSearchTest.load(m, g)",
+                           [{"macros": CASES["macros"]}, {"groups": CASES["groups"]}])
+        self.page.evaluate("location.hash = '#/?category=Tie&category=Donation'")
+        self.page.wait_for_selector(".view-toggle")
+        self.page.click(".view-toggle a:text('Table')")
+        self.page.wait_for_selector("table.results")
+        self.page.click("th a:text('Updated')")
+        self.page.wait_for_function("location.hash.endsWith('view=table&sort=-updated')")
+        expected = next(c for c in CASES["search"] if c["sort"] == "-updated" and c["filters"])["ids"]
+        ids = self.page.eval_on_selector_all("table.results tbody td:first-child a",
+                                             "as => as.map(a => Number(a.hash.match(/macro\\/(\\d+)/)[1]))")
+        self.assertEqual(ids, expected)
+        self.assertEqual(self.page.get_attribute("th[aria-sort=descending] a", "href"),
+                         "#/?category=Tie&category=Donation&view=table&sort=updated")
 
     def test_escaped_title_renders_as_text(self):
         self.page.evaluate("([m, g]) => window.macroSearchTest.load(m, g)",

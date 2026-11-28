@@ -33,7 +33,7 @@ def macro(i, title, reply="", tags="", active=True, groups=None, extra=(), descr
     return {"id": i, "title": title, "raw_title": title, "description": description, "active": active,
             "default": False, "position": i, "actions": acts,
             "restriction": {"type": "Group", "id": groups[0], "ids": groups} if groups else None,
-            "created_at": "2026-01-01T00:00:00Z", "updated_at": "2026-01-02T00:00:00Z",
+            "created_at": "2026-01-01T00:00:00Z", "updated_at": f"2026-01-{i * 7 % 28 + 1:02d}T00:00:00Z",
             "url": f"https://tbpro.zendesk.com/api/v2/macros/{i}.json"}
 
 long_reply = ("<p>{{dc.signature_block}} Hello {{ticket.requester.first_name}},</p>"
@@ -71,28 +71,46 @@ groups = [{"id": 100, "name": "Donor Support"}, {"id": 200, "name": "Tier 2"},
           {"id": 999, "name": "Old team", "deleted": True}]
 index = ms.MacroIndex(macros, groups, exported_at="2026-11-27T18:00:00Z")
 
+def query(q="", sort="", **filters):
+    """A search case. Filter values are lists, or one string as in an old URL."""
+    return {"q": q, "filters": filters, "sort": sort}
+
 queries = [
-    {"q": ""}, {"q": "refund"}, {"q": "refu"}, {"q": "REFUND"}, {"q": "cafe"}, {"q": "tb_translate"},
-    {"q": "\"add ons page\""}, {"q": "\"ons add\""}, {"q": "hello"}, {"q": "hello refund"},
-    {"q": "zebra"}, {"q": "identity"}, {"q": "thunderbird desktop"}, {"q": "dc signature"},
-    {"q": "country"}, {"q": "a OR NEAR(b) *"}, {"q": "  ** \"\" ( "}, {"q": "nothingmatches"},
-    {"q": "refund", "status": "active"}, {"q": "", "status": "inactive"}, {"q": "", "group": "100"},
-    {"q": "", "group": "none"}, {"q": "", "field": "priority"}, {"q": "hello", "group": "200"},
-    {"q": "escape"}, {"q": "settings"}, {"q": "zebrafish"}, {"q": "requester"},
-    {"q": "", "category": "Donation"}, {"q": "", "category": "DONATION"}, {"q": "refund", "category": "donation"},
-    {"q": "", "category": "Tie"}, {"q": "", "category": "::"}, {"q": "", "category": "Card"},
-    {"q": "", "category": "Lists::Nested"}, {"q": "", "category": "nothing"},
-    {"q": "", "status": "active", "group": "100", "category": "Thundermail"},
-    {"q": "roadmaps"}, {"q": "forms example"}, {"q": "javascript"}, {"q": "ticket"},
+    query(), query("refund"), query("refu"), query("REFUND"), query("cafe"), query("tb_translate"),
+    query("\"add ons page\""), query("\"ons add\""), query("hello"), query("hello refund"),
+    query("zebra"), query("identity"), query("thunderbird desktop"), query("dc signature"),
+    query("country"), query("a OR NEAR(b) *"), query("  ** \"\" ( "), query("nothingmatches"),
+    query("refund", status="active"), query(status="inactive"), query(group="100"),
+    query(group="none"), query(field="priority"), query("hello", group="200"),
+    query("escape"), query("settings"), query("zebrafish"), query("requester"),
+    query(category="Donation"), query(category="DONATION"), query("refund", category="donation"),
+    query(category="Tie"), query(category="::"), query(category="Card"),
+    query(category="Lists::Nested"), query(category="nothing"),
+    query(status="active", group="100", category="Thundermail"),
+    query("roadmaps"), query("forms example"), query("javascript"), query("ticket"),
+    # Issue #15: OR inside a group, AND between groups, and old URL values.
+    query(category=["Donation", "Tie"]), query(category=["donation", "DONATION", ""]),
+    query(category=["Donation", "::"], status=["inactive"]), query(group=["none", "999"]),
+    query(group=["100", "200"]), query(tag=["donor", "tb_translate"]), query(tag=["donor"], group=["200"]),
+    query(status="all"), query(status=["active", "inactive"]), query(status=["bogus"]),
+    query(field=["priority", "group_id"]), query(field=["priority"], status=["active"]),
+    query("hello", category=["Donation", "Thundermail"], group=["100"]),
+    query(sort="title"), query(sort="-title"), query(sort="category"), query(sort="-category"),
+    query(sort="group"), query(sort="-group"), query(sort="updated"), query(sort="-updated"),
+    query(sort="--title"), query(sort="bogus"), query("hello", sort="-title"), query("zebra", sort="updated"),
+    query(category=["Tie", "Donation"], sort="-updated"),
 ]
 cases = []
 for qd in queries:
-    params = {"q": qd.get("q", ""), "status": qd.get("status", "all"), "group": qd.get("group", ""),
-              "field": qd.get("field", ""), "category": qd.get("category", "")}
-    res = index.search(**params)
-    cases.append({**params, "ids": [r["id"] for r in res],
+    res = index.search(qd["q"], qd["filters"], qd["sort"])
+    cases.append({**qd, "ids": [r["id"] for r in res],
                   "results": [{"id": r["id"], "title_html": ms.marked(r["title"]), "snippet_html": ms.marked(r["snippet"])} for r in res]})
 
+filter_inputs = [{}, {"status": "all"}, {"category": ["A", "a", "B", ""], "tag": "x", "unknown": ["y"]},
+                 {"status": ["inactive", "active", "inactive"], "group": ["none"], "field": [], "q": "z"}]
+sort_inputs = ["", "title", "-updated", "--title", "-", "Title", "group-", "bogus"]
+query_inputs = [("", {}, "", "", False), ("refund me", {"category": ["Donation", "::"], "tag": ["a&b"]}, "table", "-updated", True),
+                ("é/ü?", {"group": ["none"], "status": ["active"]}, "list", "", False)]
 marked_texts = ["Hi {{ticket.requester.first_name}}, {% if x %}yes{% endif %}", "a { b } {single}", "{{<b>x</b>}}",
                 "Donations from [[COUNTRY]] on [[DATE]]", "a [b] [[<x>]]", "[[[ ___ ]]", "Hi. [[Insert questions…",
                 "…AMOUNT]] was charged", "Hi {{x}}. {{dc.donors…", "…first_name}}, hello", "…plain text…",
@@ -122,11 +140,17 @@ doc = {
     "group_choices": [list(c) for c in index.group_choices()],
     "field_choices": [list(c) for c in index.field_choices()],
     "category_choices": [list(c) for c in index.category_choices()],
+    "facet_choices": [[k, label, [list(c) for c in cs]] for k, label, cs in index.facet_choices()],
+    "parse_filters": [{"params": f, "filters": ms.parse_filters(f)} for f in filter_inputs],
+    "parse_sort": [{"value": v, "sort": ms.parse_sort(v)} for v in sort_inputs],
+    "next_sort": [{"current": c, "column": col, "sort": ms.next_sort(c, col)}
+                  for c in ("", "title", "-title", "-updated") for col in ms.SORTS],
+    "search_query": [{"args": list(a), "query": ms.search_query(*a)} for a in query_inputs],
 }
 out = REPO / "test_cases" / "search.json"
 out.write_text(json.dumps(doc, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
 for c in cases:
-    print(repr(c["q"]), c["status"], c["group"], c["field"], c["category"], "->", c["ids"])
+    print(repr(c["q"]), c["filters"], c["sort"], "->", c["ids"])
 for qq in ("identity", "zebrafish", "requester"):
     for r in next(c for c in cases if c["q"] == qq)["results"]: print("snippet:", qq, r["id"], r["snippet_html"])
 for h in html_cases[6:]: print("html_to_text:", repr(h), "->", repr(ms.html_to_text(h)))

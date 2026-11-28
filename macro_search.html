@@ -16,7 +16,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'sha256-e/DetXBOB6iNJpi0umYriMcT5Q1BO6QwWCuuyeiGvHc='; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'sha256-x4XQ+FboVAaQkze0kPppjZmhbqmZvRZX53tWazpROO8='; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Zendesk macros</title>
@@ -24,9 +24,25 @@
 body { font: 16px/1.45 system-ui, sans-serif; margin: 0 auto; max-width: 60rem; padding: 1rem 1.5rem 3rem; color: #1d1d1f; }
 a { color: #0b57d0; }
 h1 { font-size: 1.4rem; margin: .5rem 0 1rem; }
-form.search { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: 1rem; }
-form.search input[type=search] { flex: 1 1 100%; font-size: 1.1rem; padding: .5rem .7rem; }
-select, button { font-size: .95rem; padding: .3rem .4rem; }
+form.search { display: flex; gap: .5rem; margin-bottom: .5rem; }
+form.search input[type=search] { flex: 1 1 auto; font-size: 1.1rem; padding: .5rem .7rem; }
+button { font-size: .95rem; padding: .3rem .6rem; }
+.chip { display: inline-block; font-size: .8rem; line-height: 1.5; padding: 0 .55rem; border-radius: 999px; background: #eef3fb; color: #1e4f91; text-decoration: none; border: 1px solid transparent; white-space: nowrap; }
+.chip:hover { border-color: #1e4f91; }
+.chip.on { background: #1e4f91; color: #fff; }
+.chip .n { opacity: .7; margin-left: .3rem; }
+.tags { display: flex; flex-wrap: wrap; gap: .3rem; margin: .3rem 0 .5rem; }
+.selected { margin: .5rem 0; line-height: 2; }
+details.tagpicker { border: 1px solid #ddd; border-radius: .5rem; padding: .4rem .8rem; margin: .5rem 0; }
+details.tagpicker > summary { cursor: pointer; font-weight: 600; }
+details.tag-group > summary { cursor: pointer; font-size: .8rem; text-transform: uppercase; letter-spacing: .05em; color: #555; margin-top: .4rem; }
+.view-toggle { margin: .7rem 0 .3rem; font-size: .9rem; }
+.view-toggle a { padding: .15rem .7rem; border: 1px solid #bbb; text-decoration: none; }
+.view-toggle a.first { border-radius: .3rem 0 0 .3rem; }
+.view-toggle a.last { border-radius: 0 .3rem .3rem 0; border-left: 0; }
+.view-toggle a.on { background: #0b57d0; border-color: #0b57d0; color: #fff; }
+table.results th a { color: inherit; text-decoration: none; white-space: nowrap; }
+table.results td.updated { white-space: nowrap; }
 .count { color: #555; margin: .5rem 0; }
 .result { border-top: 1px solid #ddd; padding: .7rem 0; }
 .result h2 { font-size: 1.05rem; margin: 0 0 .2rem; }
@@ -254,6 +270,96 @@ button.link { background: none; border: none; color: #0b57d0; cursor: pointer; p
     return (i >= 0 ? cut.slice(0, i) : cut) + " …";
   }
 
+  // --- tag filters and sorting (macro_search.py: the same section) ----------
+  //
+  // A search URL holds the query, the selected values of each tag group, the
+  // view, and the sort (issue #15). A URL can repeat a group parameter.
+
+  const FACETS = [["category", "Category"], ["group", "Available for"], ["status", "Status"],
+                  ["field", "Changes field"], ["tag", "Zendesk tags"]];
+  const STATUSES = ["active", "inactive"];
+  const SORTS = ["title", "category", "group", "updated"];
+  const OPEN_GROUP_LIMIT = 30;  // a tag group with more values starts collapsed
+
+  const unique = (values) => [...new Set(values)];
+
+  // The values that a macro has in a tag group.
+  function facetValues(macro, key) {
+    if (key === "category") return [macroCategory(macro) || NO_CATEGORY];
+    if (key === "group") {
+      const ids = groupIds(macro).map(String);
+      return ids.length ? ids : ["none"];
+    }
+    if (key === "status") return [macro.active ? "active" : "inactive"];
+    if (key === "field") return unique(actions(macro).map((a) => a.field).filter((f) => f));
+    return unique(tags(macro));
+  }
+
+  // Letter case does not matter for a category (issue #11).
+  const sameValue = (key, a, b) => (key === "category" ? a.toLowerCase() === b.toLowerCase() : a === b);
+
+  // The selected values of each tag group, from URLSearchParams, FormData, or
+  // an object of value lists. Empty values, repeats, and unknown statuses,
+  // for example the old "all", are left out.
+  function parseFilters(source) {
+    const all = (key) => {
+      if (typeof source.getAll === "function") return source.getAll(key);
+      const raw = source[key];
+      if (!raw || (Array.isArray(raw) && !raw.length)) return [];
+      return Array.isArray(raw) ? raw : [raw];
+    };
+    const filters = {};
+    for (const [key] of FACETS) {
+      const chosen = [];
+      for (const raw of all(key)) {
+        const value = asText(raw);
+        if (!value || (key === "status" && !STATUSES.includes(value))) continue;
+        if (!chosen.some((c) => sameValue(key, value, c))) chosen.push(value);
+      }
+      if (chosen.length) filters[key] = chosen;
+    }
+    return filters;
+  }
+
+  // One of the selected values inside each group (OR), and every group (AND).
+  const matches = (macro, filters) => Object.entries(filters).every(([key, chosen]) =>
+    facetValues(macro, key).some((v) => chosen.some((s) => sameValue(key, v, s))));
+
+  function withValue(filters, key, value) {
+    const chosen = filters[key] || [];
+    return chosen.some((c) => sameValue(key, value, c)) ? filters : { ...filters, [key]: [...chosen, value] };
+  }
+
+  function withoutValue(filters, key, value) {
+    const out = {};
+    for (const [k, vs] of Object.entries(filters)) {
+      const kept = vs.filter((v) => !(k === key && sameValue(key, v, value)));
+      if (kept.length) out[k] = kept;
+    }
+    return out;
+  }
+
+  const parseSort = (value) =>
+    (SORTS.includes(value.replace(/^-/, "")) && (value.match(/-/g) || []).length <= 1 ? value : "");
+
+  // The sort after a click on a column heading. Updated starts with the newest.
+  function nextSort(current, column) {
+    if (current === column) return "-" + column;
+    if (current === "-" + column) return column;
+    return column === "updated" ? "-updated" : column;
+  }
+
+  // The query string of a search page, without "?". The list view is the default.
+  function searchQuery(q, filters, view = "", sort = "", picker = false) {
+    const qs = new URLSearchParams();
+    if (q) qs.append("q", q);
+    for (const [key] of FACETS) for (const v of filters[key] || []) qs.append(key, v);
+    if (view === "table") qs.append("view", "table");
+    if (sort) qs.append("sort", sort);
+    if (picker) qs.append("picker", "open");
+    return qs.toString();
+  }
+
   // --- index (macro_search.py: MacroIndex) ----------------------------------
 
   let index = null;
@@ -329,7 +435,48 @@ button.link { background: none; border: none; color: #0b57d0; cursor: pointer; p
     return choices;
   }
 
-  function search(q = "", status = "all", group = "", field = "", category = "") {
+  // The text of a tag chip.
+  function valueLabel(key, value) {
+    if (key === "category") return categoryLabel(value);
+    if (key === "group") {
+      if (value === "none") return "All agents";
+      return /^\d+$/.test(value) ? groupName(Number(value)) : value;
+    }
+    return value;
+  }
+
+  function sortKey(macro, column) {
+    if (column === "title") return asText(macro.title).toLowerCase();
+    if (column === "category") return macroCategory(macro).toLowerCase();
+    if (column === "group") return availableFor(macro).toLowerCase();
+    return asText(macro.updated_at);
+  }
+
+  // [key, label, [[value, label, count]]] of each tag group with values.
+  // The counts are over all macros, not over the results.
+  function facetChoices() {
+    const counts = Object.fromEntries(FACETS.map(([key]) => [key, new Map()]));
+    for (const m of index.macros.values()) {
+      for (const [key] of FACETS.slice(1)) {
+        for (const v of facetValues(m, key)) counts[key].set(v, (counts[key].get(v) || 0) + 1);
+      }
+    }
+    counts.category = new Map(categoryChoices());  // letter case does not matter
+    const byCode = (x, y) => (x < y ? -1 : x > y ? 1 : 0);
+    const order = {
+      category: [...counts.category.keys()],
+      group: groupChoices().map((c) => c[0]).filter((g) => counts.group.has(g)),
+      status: STATUSES.filter((v) => counts.status.has(v)),
+      field: [...counts.field.keys()].sort(byCode),
+      tag: [...counts.tag.keys()].sort(byCode),
+    };
+    return FACETS.filter(([key]) => order[key].length)
+      .map(([key, label]) => [key, label, order[key].map((v) => [v, valueLabel(key, v), counts[key].get(v)])]);
+  }
+
+  function search(q = "", filters = {}, sort = "") {
+    filters = parseFilters(filters || {});
+    sort = parseSort(sort || "");
     const terms = queryTerms(q);
     let rows;
     if (terms.length) {
@@ -361,19 +508,15 @@ button.link { background: none; border: none; color: #0b57d0; cursor: pointer; p
     } else {
       rows = index.order.map((id) => [id, index.macros.get(id).title || "", shorten(index.replies.get(id))]);
     }
-    const results = [];
-    for (const [id, title, snip] of rows) {
-      const m = index.macros.get(id);
-      if (status === "active" && !m.active) continue;
-      if (status === "inactive" && m.active) continue;
-      if (group === "none" && groupIds(m).length) continue;
-      if (group !== "" && group !== "none" && !groupIds(m).map(String).includes(group)) continue;
-      if (field && !actions(m).some((a) => a.field === field)) continue;
-      if (category && macroCategory(m).toLowerCase() !==
-          (category === NO_CATEGORY ? "" : category.toLowerCase())) continue;
-      results.push({ id, title, snippet: snip, macro: m });
+    if (sort) {
+      // A stable sort: equal keys keep the rank or title order.
+      const column = sort.replace(/^-/, ""), dir = sort.startsWith("-") ? -1 : 1;
+      const keyed = rows.map((r) => [sortKey(index.macros.get(r[0]), column), r]);
+      keyed.sort((x, y) => dir * (x[0] < y[0] ? -1 : x[0] > y[0] ? 1 : 0));
+      rows = keyed.map((x) => x[1]);
     }
-    return results;
+    return rows.filter(([id]) => matches(index.macros.get(id), filters))
+      .map(([id, title, snip]) => ({ id, title, snippet: snip, macro: index.macros.get(id) }));
   }
 
   // --- rendering (macro_search.py: pages) -----------------------------------
@@ -434,55 +577,112 @@ button.link { background: none; border: none; color: #0b57d0; cursor: pointer; p
     return `Macros exported ${value.slice(0, 10)} ${value.slice(11, 16)} UTC`;
   }
 
-  const options = (choices, selected) => choices.map(([v, label]) =>
-    `<option value="${esc(v)}"${v === selected ? " selected" : ""}>${esc(label)}</option>`).join("");
-
   const statusBadge = (m) => (m.active ? '<span class="badge active">active</span>'
                                        : '<span class="badge inactive">inactive</span>');
 
   const zendeskLink = (id) =>
     `<a href="${esc(adminUrl(id))}" target="_blank" rel="noopener noreferrer">Open in Zendesk</a>`;
 
-  function queryString(params) {
-    const qs = new URLSearchParams();
-    for (const [k, v] of Object.entries(params)) if (v) qs.set(k, v);
-    return qs.toString();
-  }
-
   const categoryLabel = (value) => (value === NO_CATEGORY ? "(no category)" : value);
 
-  // A link that shows all macros of the macro's category.
-  function categoryLink(m) {
-    const value = macroCategory(m) || NO_CATEGORY;
-    return `<a href="#/?${esc(queryString({ category: value }))}">${esc(categoryLabel(value))}</a>`;
+  function chip(label, href, on = false, count = null, title = "") {
+    return `<a class="chip${on ? " on" : ""}" href="${esc(href)}"` + (title ? ` title="${esc(title)}"` : "") +
+      `>${esc(label)}` + (count !== null ? `<span class="n">${count}</span>` : "") + "</a>";
+  }
+
+  // The query, tag filters, view, and sort of a search page (issue #15).
+  function searchState(params) {
+    const st = {
+      q: params.get("q") || "",
+      filters: parseFilters(params),
+      view: params.get("view") === "table" ? "table" : "list",
+      sort: parseSort(params.get("sort") || ""),
+      picker: params.get("picker") === "open",
+    };
+    st.url = ({ filters = st.filters, view = st.view, sort = st.sort, picker = false } = {}) => {
+      const qs = searchQuery(st.q, filters, view, sort, picker);
+      return qs ? `#/?${qs}` : "#/";
+    };
+    st.selected = (key, value) => (st.filters[key] || []).some((c) => sameValue(key, value, c));
+    return st;
+  }
+
+  // "Category: Billing ✕ or Donation ✕ · Status: active ✕ · Clear all"
+  function selectedRow(st) {
+    if (!Object.keys(st.filters).length) return "";
+    const parts = [];
+    for (const [key, label] of FACETS) {
+      const chips = (st.filters[key] || []).map((v) =>
+        chip(`${valueLabel(key, v)} ✕`, st.url({ filters: withoutValue(st.filters, key, v), picker: st.picker }),
+             true, null, "Remove"));
+      if (chips.length) parts.push(`${esc(label)}: ` + chips.join(" or "));
+    }
+    const clear = `<a href="${esc(st.url({ filters: {}, picker: st.picker }))}">Clear all</a>`;
+    return `<p class="selected">${parts.join(" · ")} · ${clear}</p>`;
+  }
+
+  // All tag groups in a collapsed section. A click on a chip selects or removes it.
+  function tagPicker(st) {
+    const groups = facetChoices().map(([key, label, choices]) => {
+      const chips = choices.map(([v, text, n]) =>
+        chip(text, st.url({ filters: (st.selected(key, v) ? withoutValue : withValue)(st.filters, key, v), picker: true }),
+             st.selected(key, v), n)).join("");
+      const expanded = key in st.filters || choices.length <= OPEN_GROUP_LIMIT;
+      return `<details class="tag-group"${expanded ? " open" : ""}>` +
+        `<summary>${esc(label)} (${choices.length})</summary><div class="tags">${chips}</div></details>`;
+    });
+    return `<details class="tagpicker"${st.picker ? " open" : ""}><summary>Filter by tag</summary>` +
+      groups.join("") + "</details>";
+  }
+
+  // Chips for a result. A click adds the value to the filter.
+  const macroChips = (st, macro, keys = ["category", "group", "tag"]) => keys
+    .filter((key) => facetValues(macro, key).length)
+    .map((key) => facetValues(macro, key).map((v) =>
+      chip(valueLabel(key, v), st.url({ filters: withValue(st.filters, key, v) }), st.selected(key, v))).join(" "));
+
+  function viewToggle(st) {
+    const links = [["list", "List", "first"], ["table", "Table", "last"]].map(([view, label, cls]) => {
+      const on = st.view === view;
+      return `<a class="${cls}${on ? " on" : ""}" href="${esc(st.url({ view }))}"` +
+        (on ? ' aria-current="true"' : "") + `>${label}</a>`;
+    });
+    return '<p class="view-toggle">Show as: ' + links.join("") + "</p>";
+  }
+
+  function resultsTable(st, shown, suffix) {
+    const th = (column, label) => {
+      const on = st.sort.replace(/^-/, "") === column, down = st.sort.startsWith("-");
+      const aria = on ? (down ? "descending" : "ascending") : "none";
+      const arrow = on ? (down ? " ▼" : " ▲") : "";
+      return `<th aria-sort="${aria}"><a href="${esc(st.url({ sort: nextSort(st.sort, column) }))}">` +
+        `${label}${arrow}</a></th>`;
+    };
+    const rows = shown.map((r) =>
+      `<tr><td><a href="#/macro/${r.id}${esc(suffix)}">${marked(r.title)}</a> ${statusBadge(r.macro)}</td>` +
+      macroChips(st, r.macro, ["category", "group"]).map((c) => `<td>${c}</td>`).join("") +
+      `<td class="updated">${esc(asText(r.macro.updated_at).slice(0, 10))}</td></tr>`).join("");
+    return '<table class="results"><thead><tr>' + th("title", "Title") + th("category", "Category") +
+      th("group", "Available for") + th("updated", "Updated") + `</tr></thead><tbody>${rows}</tbody></table>`;
   }
 
   function renderSearch(params) {
-    const q = params.q || "", group = params.group || "", field = params.field || "";
-    const category = params.category || "";
-    const status = ["active", "inactive"].includes(params.status) ? params.status : "all";
-    const results = search(q, status, group, field, category);
-    const qs = queryString({ q, status: params.status || "", group, field, category });
+    const st = searchState(params);
+    const results = search(st.q, st.filters, st.sort);
+    const qs = searchQuery(st.q, st.filters, st.view, st.sort);
     const suffix = qs ? `?${qs}` : "";
+    let hidden = FACETS.flatMap(([key]) => (st.filters[key] || []).map((v) =>
+      `<input type="hidden" name="${key}" value="${esc(v)}">`)).join("");
+    if (st.view === "table") hidden += '<input type="hidden" name="view" value="table">';
     const form =
       '<form class="search" id="search">' +
-      `<input type="search" name="q" value="${esc(q)}" placeholder="Search titles, replies, and tags" autofocus>` +
-      '<select name="status" aria-label="Status">' +
-      options([["all", "Active and inactive"], ["active", "Active"], ["inactive", "Inactive"]], status) +
-      '</select><select name="group" aria-label="Available for">' +
-      options([["", "Any group"], ...groupChoices().map(([v, label, n]) => [v, `${label} (${n})`])], group) +
-      '</select><select name="field" aria-label="Changes field">' +
-      options([["", "Any field"], ...fieldChoices().map(([f, n]) => [f, `${f} (${n})`])], field) +
-      '</select><select name="category" aria-label="Category">' +
-      options([["", "All categories"], ...categoryChoices().map(([c, n]) => [c, `${categoryLabel(c)} (${n})`])],
-              category) +
-      '</select><button type="submit">Search</button></form>';
+      `<input type="search" name="q" value="${esc(st.q)}" placeholder="Search titles, replies, and tags" autofocus>` +
+      `${hidden}<button type="submit">Search</button></form>`;
     const shown = results.slice(0, MAX_RESULTS);
-    const items = shown.map((r) =>
+    const items = st.view === "table" ? (shown.length ? resultsTable(st, shown, suffix) : "") : shown.map((r) =>
       '<div class="result">' +
       `<h2><a href="#/macro/${r.id}${esc(suffix)}">${marked(r.title)}</a></h2>` +
-      `<div class="meta">${statusBadge(r.macro)} · ${categoryLink(r.macro)} · ${esc(availableFor(r.macro))} · ` +
-      `${zendeskLink(r.id)}</div>` +
+      `<div class="meta">${[statusBadge(r.macro), ...macroChips(st, r.macro), zendeskLink(r.id)].join(" · ")}</div>` +
       (r.snippet ? `<p class="snippet">${marked(r.snippet)}</p>` : "") +
       "</div>").join("");
     let count = `${results.length} of ${index.macros.size} macros`;
@@ -493,8 +693,9 @@ button.link { background: none; border: none; color: #0b57d0; cursor: pointer; p
                    '<span class="fill">[[orange]]</span> replace before sending</p>';
     const notice = index.groupNames.size ? "" :
       '<p class="notice">Load groups.json to see group names instead of group IDs.</p>';
-    document.title = q ? `${q} - Zendesk macros` : "Zendesk macros";
-    return `<h1>Zendesk macros</h1>${form}<p class="count">${esc(count)}</p>${legend}${notice}` +
+    document.title = st.q ? `${st.q} - Zendesk macros` : "Zendesk macros";
+    return `<h1>Zendesk macros</h1>${form}${selectedRow(st)}${tagPicker(st)}${viewToggle(st)}` +
+           `<p class="count">${esc(count)}</p>${legend}${notice}` +
            items + '<p><button type="button" class="link" id="reload">Load other files</button></p>';
   }
 
@@ -580,7 +781,7 @@ button.link { background: none; border: none; color: #0b57d0; cursor: pointer; p
     if (!index || location.hash === "#/load") { render(renderLoad()); return; }
     const hash = location.hash.replace(/^#\/?/, "");
     const [path, query = ""] = hash.split(/\?(.*)/s);
-    const params = Object.fromEntries(new URLSearchParams(query));
+    const params = new URLSearchParams(query);
     const detail = /^macro\/(\d+)$/.exec(path);
     if (detail && index.macros.has(Number(detail[1]))) {
       render(renderMacro(Number(detail[1]), query));
@@ -594,9 +795,7 @@ button.link { background: none; border: none; color: #0b57d0; cursor: pointer; p
     if (event.target.id !== "search") return;
     event.preventDefault();
     const data = new FormData(event.target);
-    const qs = queryString({ q: data.get("q"), status: data.get("status") === "all" ? "" : data.get("status"),
-                             group: data.get("group"), field: data.get("field"),
-                             category: data.get("category") });
+    const qs = searchQuery(String(data.get("q") || ""), parseFilters(data), data.get("view") || "");
     location.hash = qs ? `#/?${qs}` : "#/";
   });
   app.addEventListener("change", (event) => {
@@ -625,8 +824,8 @@ button.link { background: none; border: none; color: #0b57d0; cursor: pointer; p
   // For test_macro_search_html.py. It reads nothing and sends nothing.
   window.macroSearchTest = Object.freeze({
     load(macrosDoc, groupsDoc) { useDocuments(macrosDoc, groupsDoc); },
-    search(q, status, group, field, category) {
-      return search(q, status, group, field, category).map((r) =>
+    search(q, filters, sort) {
+      return search(q, filters, sort).map((r) =>
         ({ id: r.id, title_html: marked(r.title), snippet_html: marked(r.snippet) }));
     },
     marked, htmlToText, linked, exportLabel,
@@ -634,6 +833,8 @@ button.link { background: none; border: none; color: #0b57d0; cursor: pointer; p
     groupChoices() { return groupChoices(); },
     fieldChoices() { return fieldChoices(); },
     categoryChoices() { return categoryChoices(); },
+    facetChoices() { return facetChoices(); },
+    parseFilters, parseSort, nextSort, searchQuery,
   });
 
   route();

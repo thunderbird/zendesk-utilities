@@ -18,7 +18,7 @@ CASES = json.loads((Path(__file__).parent / "test_cases" / "search.json").read_t
 
 
 def label(case) -> str:
-    return f"q={case['q']!r} status={case['status']} group={case['group']!r} field={case['field']!r} category={case['category']!r}"
+    return f"q={case['q']!r} filters={case['filters']!r} sort={case['sort']!r}"
 
 
 class SharedCases(unittest.TestCase):
@@ -29,7 +29,7 @@ class SharedCases(unittest.TestCase):
     def test_search(self):
         for case in CASES["search"]:
             with self.subTest(label(case)):
-                res = self.index.search(case["q"], case["status"], case["group"], case["field"], case["category"])
+                res = self.index.search(case["q"], case["filters"], case["sort"])
                 got = [{"id": r["id"], "title_html": ms.marked(r["title"]),
                         "snippet_html": ms.marked(r["snippet"])} for r in res]
                 self.assertEqual(got, case["results"])
@@ -59,6 +59,18 @@ class SharedCases(unittest.TestCase):
         self.assertEqual([list(c) for c in self.index.category_choices()], CASES["category_choices"])
         for case in CASES["export_label"]:
             self.assertEqual(ms.export_label(case["value"]), case["label"])
+
+    def test_tag_filters_and_sorting(self):
+        self.assertEqual([[k, label, [list(c) for c in cs]] for k, label, cs in self.index.facet_choices()],
+                         CASES["facet_choices"])
+        for case in CASES["parse_filters"]:
+            self.assertEqual(ms.parse_filters(case["params"]), case["filters"])
+        for case in CASES["parse_sort"]:
+            self.assertEqual(ms.parse_sort(case["value"]), case["sort"])
+        for case in CASES["next_sort"]:
+            self.assertEqual(ms.next_sort(case["current"], case["column"]), case["sort"])
+        for case in CASES["search_query"]:
+            self.assertEqual(ms.search_query(*case["args"]), case["query"])
 
 
 if __name__ == "__main__":

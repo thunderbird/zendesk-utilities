@@ -28,7 +28,7 @@
     ]
    },
    "created_at": "2026-01-01T00:00:00Z",
-   "updated_at": "2026-01-02T00:00:00Z",
+   "updated_at": "2026-01-08T00:00:00Z",
    "url": "https://tbpro.zendesk.com/api/v2/macros/1.json"
   },
   {
@@ -51,7 +51,7 @@
    ],
    "restriction": null,
    "created_at": "2026-01-01T00:00:00Z",
-   "updated_at": "2026-01-02T00:00:00Z",
+   "updated_at": "2026-01-15T00:00:00Z",
    "url": "https://tbpro.zendesk.com/api/v2/macros/2.json"
   },
   {
@@ -74,7 +74,7 @@
    ],
    "restriction": null,
    "created_at": "2026-01-01T00:00:00Z",
-   "updated_at": "2026-01-02T00:00:00Z",
+   "updated_at": "2026-01-22T00:00:00Z",
    "url": "https://tbpro.zendesk.com/api/v2/macros/3.json"
   },
   {
@@ -99,7 +99,7 @@
     ]
    },
    "created_at": "2026-01-01T00:00:00Z",
-   "updated_at": "2026-01-02T00:00:00Z",
+   "updated_at": "2026-01-01T00:00:00Z",
    "url": "https://tbpro.zendesk.com/api/v2/macros/4.json"
   },
   {
@@ -129,7 +129,7 @@
     ]
    },
    "created_at": "2026-01-01T00:00:00Z",
-   "updated_at": "2026-01-02T00:00:00Z",
+   "updated_at": "2026-01-08T00:00:00Z",
    "url": "https://tbpro.zendesk.com/api/v2/macros/5.json"
   },
   {
@@ -148,7 +148,7 @@
    ],
    "restriction": null,
    "created_at": "2026-01-01T00:00:00Z",
-   "updated_at": "2026-01-02T00:00:00Z",
+   "updated_at": "2026-01-15T00:00:00Z",
    "url": "https://tbpro.zendesk.com/api/v2/macros/6.json"
   },
   {
@@ -167,7 +167,7 @@
    ],
    "restriction": null,
    "created_at": "2026-01-01T00:00:00Z",
-   "updated_at": "2026-01-02T00:00:00Z",
+   "updated_at": "2026-01-22T00:00:00Z",
    "url": "https://tbpro.zendesk.com/api/v2/macros/7.json"
   },
   {
@@ -190,7 +190,7 @@
    ],
    "restriction": null,
    "created_at": "2026-01-01T00:00:00Z",
-   "updated_at": "2026-01-02T00:00:00Z",
+   "updated_at": "2026-01-01T00:00:00Z",
    "url": "https://tbpro.zendesk.com/api/v2/macros/8.json"
   },
   {
@@ -209,7 +209,7 @@
    ],
    "restriction": null,
    "created_at": "2026-01-01T00:00:00Z",
-   "updated_at": "2026-01-02T00:00:00Z",
+   "updated_at": "2026-01-08T00:00:00Z",
    "url": "https://tbpro.zendesk.com/api/v2/macros/9.json"
   },
   {
@@ -228,7 +228,7 @@
    ],
    "restriction": null,
    "created_at": "2026-01-01T00:00:00Z",
-   "updated_at": "2026-01-02T00:00:00Z",
+   "updated_at": "2026-01-15T00:00:00Z",
    "url": "https://tbpro.zendesk.com/api/v2/macros/10.json"
   },
   {
@@ -247,7 +247,7 @@
    ],
    "restriction": null,
    "created_at": "2026-01-01T00:00:00Z",
-   "updated_at": "2026-01-02T00:00:00Z",
+   "updated_at": "2026-01-22T00:00:00Z",
    "url": "https://tbpro.zendesk.com/api/v2/macros/11.json"
   },
   {
@@ -266,7 +266,7 @@
    ],
    "restriction": null,
    "created_at": "2026-01-01T00:00:00Z",
-   "updated_at": "2026-01-02T00:00:00Z",
+   "updated_at": "2026-01-01T00:00:00Z",
    "url": "https://tbpro.zendesk.com/api/v2/macros/12.json"
   },
   {
@@ -285,7 +285,7 @@
    ],
    "restriction": null,
    "created_at": "2026-01-01T00:00:00Z",
-   "updated_at": "2026-01-02T00:00:00Z",
+   "updated_at": "2026-01-08T00:00:00Z",
    "url": "https://tbpro.zendesk.com/api/v2/macros/13.json"
   }
  ],
@@ -307,10 +307,8 @@
  "search": [
   {
    "q": "",
-   "status": "all",
-   "group": "",
-   "field": "",
-   "category": "",
+   "filters": {},
+   "sort": "",
    "ids": [
     11,
     9,
@@ -396,10 +394,8 @@
   },
   {
    "q": "refund",
-   "status": "all",
-   "group": "",
-   "field": "",
-   "category": "",
+   "filters": {},
+   "sort": "",
    "ids": [
     1,
     3
@@ -419,10 +415,8 @@
   },
   {
    "q": "refu",
-   "status": "all",
-   "group": "",
-   "field": "",
-   "category": "",
+   "filters": {},
+   "sort": "",
    "ids": [
     1,
     3
@@ -442,10 +436,8 @@
   },
   {
    "q": "REFUND",
-   "status": "all",
-   "group": "",
-   "field": "",
-   "category": "",
+   "filters": {},
+   "sort": "",
    "ids": [
     1,
     3
@@ -465,10 +457,8 @@
   },
   {
    "q": "cafe",
-   "status": "all",
-   "group": "",
-   "field": "",
-   "category": "",
+   "filters": {},
+   "sort": "",
    "ids": [
     4
    ],
@@ -482,10 +472,8 @@
   },
   {
    "q": "tb_translate",
-   "status": "all",
-   "group": "",
-   "field": "",
-   "category": "",
+   "filters": {},
+   "sort": "",
    "ids": [
     2
    ],
@@ -499,10 +487,8 @@
   },
   {
    "q": "\"add ons page\"",
-   "status": "all",
-   "group": "",
-   "field": "",
-   "category": "",
+   "filters": {},
+   "sort": "",
    "ids": [
     2
    ],
@@ -516,19 +502,15 @@
   },
   {
    "q": "\"ons add\"",
-   "status": "all",
-   "group": "",
-   "field": "",
-   "category": "",
+   "filters": {},
+   "sort": "",
    "ids": [],
    "results": []
   },
   {
    "q": "hello",
-   "status": "all",
-   "group": "",
-   "field": "",
-   "category": "",
+   "filters": {},
+   "sort": "",
    "ids": [
     3,
     1,
@@ -554,10 +536,8 @@
   },
   {
    "q": "hello refund",
-   "status": "all",
-   "group": "",
-   "field": "",
-   "category": "",
+   "filters": {},
+   "sort": "",
    "ids": [
     1,
     3
@@ -577,10 +557,8 @@
   },
   {
    "q": "zebra",
-   "status": "all",
-   "group": "",
-   "field": "",
-   "category": "",
+   "filters": {},
+   "sort": "",
    "ids": [
     6,
     7,
@@ -606,10 +584,8 @@
   },
   {
    "q": "identity",
-   "status": "all",
-   "group": "",
-   "field": "",
-   "category": "",
+   "filters": {},
+   "sort": "",
    "ids": [
     5
    ],
@@ -623,10 +599,8 @@
   },
   {
    "q": "thunderbird desktop",
-   "status": "all",
-   "group": "",
-   "field": "",
-   "category": "",
+   "filters": {},
+   "sort": "",
    "ids": [
     5
    ],
@@ -640,10 +614,8 @@
   },
   {
    "q": "dc signature",
-   "status": "all",
-   "group": "",
-   "field": "",
-   "category": "",
+   "filters": {},
+   "sort": "",
    "ids": [
     5
    ],
@@ -657,10 +629,8 @@
   },
   {
    "q": "country",
-   "status": "all",
-   "group": "",
-   "field": "",
-   "category": "",
+   "filters": {},
+   "sort": "",
    "ids": [
     13,
     5
@@ -680,19 +650,15 @@
   },
   {
    "q": "a OR NEAR(b) *",
-   "status": "all",
-   "group": "",
-   "field": "",
-   "category": "",
+   "filters": {},
+   "sort": "",
    "ids": [],
    "results": []
   },
   {
    "q": "  ** \"\" ( ",
-   "status": "all",
-   "group": "",
-   "field": "",
-   "category": "",
+   "filters": {},
+   "sort": "",
    "ids": [
     11,
     9,
@@ -778,19 +744,17 @@
   },
   {
    "q": "nothingmatches",
-   "status": "all",
-   "group": "",
-   "field": "",
-   "category": "",
+   "filters": {},
+   "sort": "",
    "ids": [],
    "results": []
   },
   {
    "q": "refund",
-   "status": "active",
-   "group": "",
-   "field": "",
-   "category": "",
+   "filters": {
+    "status": "active"
+   },
+   "sort": "",
    "ids": [
     1
    ],
@@ -804,10 +768,10 @@
   },
   {
    "q": "",
-   "status": "inactive",
-   "group": "",
-   "field": "",
-   "category": "",
+   "filters": {
+    "status": "inactive"
+   },
+   "sort": "",
    "ids": [
     3
    ],
@@ -821,10 +785,10 @@
   },
   {
    "q": "",
-   "status": "all",
-   "group": "100",
-   "field": "",
-   "category": "",
+   "filters": {
+    "group": "100"
+   },
+   "sort": "",
    "ids": [
     1,
     5
@@ -844,10 +808,10 @@
   },
   {
    "q": "",
-   "status": "all",
-   "group": "none",
-   "field": "",
-   "category": "",
+   "filters": {
+    "group": "none"
+   },
+   "sort": "",
    "ids": [
     11,
     9,
@@ -915,10 +879,10 @@
   },
   {
    "q": "",
-   "status": "all",
-   "group": "",
-   "field": "priority",
-   "category": "",
+   "filters": {
+    "field": "priority"
+   },
+   "sort": "",
    "ids": [
     3
    ],
@@ -932,10 +896,10 @@
   },
   {
    "q": "hello",
-   "status": "all",
-   "group": "200",
-   "field": "",
-   "category": "",
+   "filters": {
+    "group": "200"
+   },
+   "sort": "",
    "ids": [
     5
    ],
@@ -949,10 +913,8 @@
   },
   {
    "q": "escape",
-   "status": "all",
-   "group": "",
-   "field": "",
-   "category": "",
+   "filters": {},
+   "sort": "",
    "ids": [
     9
    ],
@@ -966,10 +928,8 @@
   },
   {
    "q": "settings",
-   "status": "all",
-   "group": "",
-   "field": "",
-   "category": "",
+   "filters": {},
+   "sort": "",
    "ids": [
     8,
     5
@@ -989,10 +949,8 @@
   },
   {
    "q": "zebrafish",
-   "status": "all",
-   "group": "",
-   "field": "",
-   "category": "",
+   "filters": {},
+   "sort": "",
    "ids": [
     10
    ],
@@ -1006,10 +964,8 @@
   },
   {
    "q": "requester",
-   "status": "all",
-   "group": "",
-   "field": "",
-   "category": "",
+   "filters": {},
+   "sort": "",
    "ids": [
     1,
     10,
@@ -1035,10 +991,10 @@
   },
   {
    "q": "",
-   "status": "all",
-   "group": "",
-   "field": "",
-   "category": "Donation",
+   "filters": {
+    "category": "Donation"
+   },
+   "sort": "",
    "ids": [
     11,
     1
@@ -1058,10 +1014,10 @@
   },
   {
    "q": "",
-   "status": "all",
-   "group": "",
-   "field": "",
-   "category": "DONATION",
+   "filters": {
+    "category": "DONATION"
+   },
+   "sort": "",
    "ids": [
     11,
     1
@@ -1081,10 +1037,10 @@
   },
   {
    "q": "refund",
-   "status": "all",
-   "group": "",
-   "field": "",
-   "category": "donation",
+   "filters": {
+    "category": "donation"
+   },
+   "sort": "",
    "ids": [
     1
    ],
@@ -1098,10 +1054,10 @@
   },
   {
    "q": "",
-   "status": "all",
-   "group": "",
-   "field": "",
-   "category": "Tie",
+   "filters": {
+    "category": "Tie"
+   },
+   "sort": "",
    "ids": [
     6,
     7
@@ -1121,10 +1077,10 @@
   },
   {
    "q": "",
-   "status": "all",
-   "group": "",
-   "field": "",
-   "category": "::",
+   "filters": {
+    "category": "::"
+   },
+   "sort": "",
    "ids": [
     9,
     4,
@@ -1150,37 +1106,39 @@
   },
   {
    "q": "",
-   "status": "all",
-   "group": "",
-   "field": "",
-   "category": "Card",
+   "filters": {
+    "category": "Card"
+   },
+   "sort": "",
    "ids": [],
    "results": []
   },
   {
    "q": "",
-   "status": "all",
-   "group": "",
-   "field": "",
-   "category": "Lists::Nested",
+   "filters": {
+    "category": "Lists::Nested"
+   },
+   "sort": "",
    "ids": [],
    "results": []
   },
   {
    "q": "",
-   "status": "all",
-   "group": "",
-   "field": "",
-   "category": "nothing",
+   "filters": {
+    "category": "nothing"
+   },
+   "sort": "",
    "ids": [],
    "results": []
   },
   {
    "q": "",
-   "status": "active",
-   "group": "100",
-   "field": "",
-   "category": "Thundermail",
+   "filters": {
+    "status": "active",
+    "group": "100",
+    "category": "Thundermail"
+   },
+   "sort": "",
    "ids": [
     5
    ],
@@ -1194,10 +1152,8 @@
   },
   {
    "q": "roadmaps",
-   "status": "all",
-   "group": "",
-   "field": "",
-   "category": "",
+   "filters": {},
+   "sort": "",
    "ids": [
     12
    ],
@@ -1211,10 +1167,8 @@
   },
   {
    "q": "forms example",
-   "status": "all",
-   "group": "",
-   "field": "",
-   "category": "",
+   "filters": {},
+   "sort": "",
    "ids": [
     13
    ],
@@ -1228,10 +1182,8 @@
   },
   {
    "q": "javascript",
-   "status": "all",
-   "group": "",
-   "field": "",
-   "category": "",
+   "filters": {},
+   "sort": "",
    "ids": [
     13
    ],
@@ -1245,10 +1197,8 @@
   },
   {
    "q": "ticket",
-   "status": "all",
-   "group": "",
-   "field": "",
-   "category": "",
+   "filters": {},
+   "sort": "",
    "ids": [
     13,
     1,
@@ -1275,6 +1225,1543 @@
      "id": 5,
      "title_html": "Thundermail::Aliases - Identity setup",
      "snippet_html": "…<span class=\"dc\">{{dc.signature_block}}</span> Hello <span class=\"dc\">{{<mark>ticket</mark>.requester.first_name}}</span>,\n\nThanks for writing to us about your account. We read every message and we answer as soon…"
+    }
+   ]
+  },
+  {
+   "q": "",
+   "filters": {
+    "category": [
+     "Donation",
+     "Tie"
+    ]
+   },
+   "sort": "",
+   "ids": [
+    11,
+    1,
+    6,
+    7
+   ],
+   "results": [
+    {
+     "id": 11,
+     "title_html": "  donation :: Card :: Update",
+     "snippet_html": "Change the card."
+    },
+    {
+     "id": 1,
+     "title_html": "Donation::Refund request",
+     "snippet_html": "Hello <span class=\"dc\">{{ticket.requester.first_name}}</span>, We sent your refund today."
+    },
+    {
+     "id": 6,
+     "title_html": "Tie::A - Same",
+     "snippet_html": "Unique zebra word."
+    },
+    {
+     "id": 7,
+     "title_html": "Tie::B - Same",
+     "snippet_html": "Unique zebra word."
+    }
+   ]
+  },
+  {
+   "q": "",
+   "filters": {
+    "category": [
+     "donation",
+     "DONATION",
+     ""
+    ]
+   },
+   "sort": "",
+   "ids": [
+    11,
+    1
+   ],
+   "results": [
+    {
+     "id": 11,
+     "title_html": "  donation :: Card :: Update",
+     "snippet_html": "Change the card."
+    },
+    {
+     "id": 1,
+     "title_html": "Donation::Refund request",
+     "snippet_html": "Hello <span class=\"dc\">{{ticket.requester.first_name}}</span>, We sent your refund today."
+    }
+   ]
+  },
+  {
+   "q": "",
+   "filters": {
+    "category": [
+     "Donation",
+     "::"
+    ],
+    "status": [
+     "inactive"
+    ]
+   },
+   "sort": "",
+   "ids": [
+    3
+   ],
+   "results": [
+    {
+     "id": 3,
+     "title_html": "Old greeting",
+     "snippet_html": "Hello, the refund team here."
+    }
+   ]
+  },
+  {
+   "q": "",
+   "filters": {
+    "group": [
+     "none",
+     "999"
+    ]
+   },
+   "sort": "",
+   "ids": [
+    11,
+    9,
+    4,
+    10,
+    13,
+    8,
+    3,
+    12,
+    2,
+    6,
+    7
+   ],
+   "results": [
+    {
+     "id": 11,
+     "title_html": "  donation :: Card :: Update",
+     "snippet_html": "Change the card."
+    },
+    {
+     "id": 9,
+     "title_html": "&lt;b&gt;Escape&lt;/b&gt; &amp; &quot;quotes&quot; &#x27;single&#x27;",
+     "snippet_html": "&lt;img src=x onerror=alert(1)&gt; <span class=\"fill\">[[DATE]]</span>"
+    },
+    {
+     "id": 4,
+     "title_html": "Café closing",
+     "snippet_html": "Bye for now"
+    },
+    {
+     "id": 10,
+     "title_html": "Cut::Words - Apostrophe",
+     "snippet_html": "word0 word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12 word13 word14 word15 word16 word17 word18 word19 word20 word21 word22 word23 word24 word25 word26 word27 word28 word29 we know you&#x27;d like …"
+    },
+    {
+     "id": 13,
+     "title_html": "Links::Unsafe and dynamic",
+     "snippet_html": "Click here (javascript:alert(1)) or open the form (https://forms.example.org/?ticket=<span class=\"dc\">{{ticket.id}}</span>&amp;country=<span class=\"fill\">[[COUNTRY]]</span>)now."
+    },
+    {
+     "id": 8,
+     "title_html": "Lists::Nested - Steps",
+     "snippet_html": "- Open settings - Pick one"
+    },
+    {
+     "id": 3,
+     "title_html": "Old greeting",
+     "snippet_html": "Hello, the refund team here."
+    },
+    {
+     "id": 12,
+     "title_html": "Roadmap::Mobile app",
+     "snippet_html": "Thanks for asking! Here is our roadmap (https://roadmaps.example.org/ios/). Read https://www.example.org or write to help@example.org."
+    },
+    {
+     "id": 2,
+     "title_html": "Thunderbird::Translate emails",
+     "snippet_html": "Open the add-ons page. Search for a translator."
+    },
+    {
+     "id": 6,
+     "title_html": "Tie::A - Same",
+     "snippet_html": "Unique zebra word."
+    },
+    {
+     "id": 7,
+     "title_html": "Tie::B - Same",
+     "snippet_html": "Unique zebra word."
+    }
+   ]
+  },
+  {
+   "q": "",
+   "filters": {
+    "group": [
+     "100",
+     "200"
+    ]
+   },
+   "sort": "",
+   "ids": [
+    1,
+    5
+   ],
+   "results": [
+    {
+     "id": 1,
+     "title_html": "Donation::Refund request",
+     "snippet_html": "Hello <span class=\"dc\">{{ticket.requester.first_name}}</span>, We sent your refund today."
+    },
+    {
+     "id": 5,
+     "title_html": "Thundermail::Aliases - Identity setup",
+     "snippet_html": "<span class=\"dc\">{{dc.signature_block}}</span> Hello <span class=\"dc\">{{ticket.requester.first_name}}</span>, Thanks for writing to us about your account. We read every message and we answer as soon as we can. Before you change anything, please make a backup of your …"
+    }
+   ]
+  },
+  {
+   "q": "",
+   "filters": {
+    "tag": [
+     "donor",
+     "tb_translate"
+    ]
+   },
+   "sort": "",
+   "ids": [
+    1,
+    2
+   ],
+   "results": [
+    {
+     "id": 1,
+     "title_html": "Donation::Refund request",
+     "snippet_html": "Hello <span class=\"dc\">{{ticket.requester.first_name}}</span>, We sent your refund today."
+    },
+    {
+     "id": 2,
+     "title_html": "Thunderbird::Translate emails",
+     "snippet_html": "Open the add-ons page. Search for a translator."
+    }
+   ]
+  },
+  {
+   "q": "",
+   "filters": {
+    "tag": [
+     "donor"
+    ],
+    "group": [
+     "200"
+    ]
+   },
+   "sort": "",
+   "ids": [],
+   "results": []
+  },
+  {
+   "q": "",
+   "filters": {
+    "status": "all"
+   },
+   "sort": "",
+   "ids": [
+    11,
+    9,
+    4,
+    10,
+    1,
+    13,
+    8,
+    3,
+    12,
+    2,
+    5,
+    6,
+    7
+   ],
+   "results": [
+    {
+     "id": 11,
+     "title_html": "  donation :: Card :: Update",
+     "snippet_html": "Change the card."
+    },
+    {
+     "id": 9,
+     "title_html": "&lt;b&gt;Escape&lt;/b&gt; &amp; &quot;quotes&quot; &#x27;single&#x27;",
+     "snippet_html": "&lt;img src=x onerror=alert(1)&gt; <span class=\"fill\">[[DATE]]</span>"
+    },
+    {
+     "id": 4,
+     "title_html": "Café closing",
+     "snippet_html": "Bye for now"
+    },
+    {
+     "id": 10,
+     "title_html": "Cut::Words - Apostrophe",
+     "snippet_html": "word0 word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12 word13 word14 word15 word16 word17 word18 word19 word20 word21 word22 word23 word24 word25 word26 word27 word28 word29 we know you&#x27;d like …"
+    },
+    {
+     "id": 1,
+     "title_html": "Donation::Refund request",
+     "snippet_html": "Hello <span class=\"dc\">{{ticket.requester.first_name}}</span>, We sent your refund today."
+    },
+    {
+     "id": 13,
+     "title_html": "Links::Unsafe and dynamic",
+     "snippet_html": "Click here (javascript:alert(1)) or open the form (https://forms.example.org/?ticket=<span class=\"dc\">{{ticket.id}}</span>&amp;country=<span class=\"fill\">[[COUNTRY]]</span>)now."
+    },
+    {
+     "id": 8,
+     "title_html": "Lists::Nested - Steps",
+     "snippet_html": "- Open settings - Pick one"
+    },
+    {
+     "id": 3,
+     "title_html": "Old greeting",
+     "snippet_html": "Hello, the refund team here."
+    },
+    {
+     "id": 12,
+     "title_html": "Roadmap::Mobile app",
+     "snippet_html": "Thanks for asking! Here is our roadmap (https://roadmaps.example.org/ios/). Read https://www.example.org or write to help@example.org."
+    },
+    {
+     "id": 2,
+     "title_html": "Thunderbird::Translate emails",
+     "snippet_html": "Open the add-ons page. Search for a translator."
+    },
+    {
+     "id": 5,
+     "title_html": "Thundermail::Aliases - Identity setup",
+     "snippet_html": "<span class=\"dc\">{{dc.signature_block}}</span> Hello <span class=\"dc\">{{ticket.requester.first_name}}</span>, Thanks for writing to us about your account. We read every message and we answer as soon as we can. Before you change anything, please make a backup of your …"
+    },
+    {
+     "id": 6,
+     "title_html": "Tie::A - Same",
+     "snippet_html": "Unique zebra word."
+    },
+    {
+     "id": 7,
+     "title_html": "Tie::B - Same",
+     "snippet_html": "Unique zebra word."
+    }
+   ]
+  },
+  {
+   "q": "",
+   "filters": {
+    "status": [
+     "active",
+     "inactive"
+    ]
+   },
+   "sort": "",
+   "ids": [
+    11,
+    9,
+    4,
+    10,
+    1,
+    13,
+    8,
+    3,
+    12,
+    2,
+    5,
+    6,
+    7
+   ],
+   "results": [
+    {
+     "id": 11,
+     "title_html": "  donation :: Card :: Update",
+     "snippet_html": "Change the card."
+    },
+    {
+     "id": 9,
+     "title_html": "&lt;b&gt;Escape&lt;/b&gt; &amp; &quot;quotes&quot; &#x27;single&#x27;",
+     "snippet_html": "&lt;img src=x onerror=alert(1)&gt; <span class=\"fill\">[[DATE]]</span>"
+    },
+    {
+     "id": 4,
+     "title_html": "Café closing",
+     "snippet_html": "Bye for now"
+    },
+    {
+     "id": 10,
+     "title_html": "Cut::Words - Apostrophe",
+     "snippet_html": "word0 word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12 word13 word14 word15 word16 word17 word18 word19 word20 word21 word22 word23 word24 word25 word26 word27 word28 word29 we know you&#x27;d like …"
+    },
+    {
+     "id": 1,
+     "title_html": "Donation::Refund request",
+     "snippet_html": "Hello <span class=\"dc\">{{ticket.requester.first_name}}</span>, We sent your refund today."
+    },
+    {
+     "id": 13,
+     "title_html": "Links::Unsafe and dynamic",
+     "snippet_html": "Click here (javascript:alert(1)) or open the form (https://forms.example.org/?ticket=<span class=\"dc\">{{ticket.id}}</span>&amp;country=<span class=\"fill\">[[COUNTRY]]</span>)now."
+    },
+    {
+     "id": 8,
+     "title_html": "Lists::Nested - Steps",
+     "snippet_html": "- Open settings - Pick one"
+    },
+    {
+     "id": 3,
+     "title_html": "Old greeting",
+     "snippet_html": "Hello, the refund team here."
+    },
+    {
+     "id": 12,
+     "title_html": "Roadmap::Mobile app",
+     "snippet_html": "Thanks for asking! Here is our roadmap (https://roadmaps.example.org/ios/). Read https://www.example.org or write to help@example.org."
+    },
+    {
+     "id": 2,
+     "title_html": "Thunderbird::Translate emails",
+     "snippet_html": "Open the add-ons page. Search for a translator."
+    },
+    {
+     "id": 5,
+     "title_html": "Thundermail::Aliases - Identity setup",
+     "snippet_html": "<span class=\"dc\">{{dc.signature_block}}</span> Hello <span class=\"dc\">{{ticket.requester.first_name}}</span>, Thanks for writing to us about your account. We read every message and we answer as soon as we can. Before you change anything, please make a backup of your …"
+    },
+    {
+     "id": 6,
+     "title_html": "Tie::A - Same",
+     "snippet_html": "Unique zebra word."
+    },
+    {
+     "id": 7,
+     "title_html": "Tie::B - Same",
+     "snippet_html": "Unique zebra word."
+    }
+   ]
+  },
+  {
+   "q": "",
+   "filters": {
+    "status": [
+     "bogus"
+    ]
+   },
+   "sort": "",
+   "ids": [
+    11,
+    9,
+    4,
+    10,
+    1,
+    13,
+    8,
+    3,
+    12,
+    2,
+    5,
+    6,
+    7
+   ],
+   "results": [
+    {
+     "id": 11,
+     "title_html": "  donation :: Card :: Update",
+     "snippet_html": "Change the card."
+    },
+    {
+     "id": 9,
+     "title_html": "&lt;b&gt;Escape&lt;/b&gt; &amp; &quot;quotes&quot; &#x27;single&#x27;",
+     "snippet_html": "&lt;img src=x onerror=alert(1)&gt; <span class=\"fill\">[[DATE]]</span>"
+    },
+    {
+     "id": 4,
+     "title_html": "Café closing",
+     "snippet_html": "Bye for now"
+    },
+    {
+     "id": 10,
+     "title_html": "Cut::Words - Apostrophe",
+     "snippet_html": "word0 word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12 word13 word14 word15 word16 word17 word18 word19 word20 word21 word22 word23 word24 word25 word26 word27 word28 word29 we know you&#x27;d like …"
+    },
+    {
+     "id": 1,
+     "title_html": "Donation::Refund request",
+     "snippet_html": "Hello <span class=\"dc\">{{ticket.requester.first_name}}</span>, We sent your refund today."
+    },
+    {
+     "id": 13,
+     "title_html": "Links::Unsafe and dynamic",
+     "snippet_html": "Click here (javascript:alert(1)) or open the form (https://forms.example.org/?ticket=<span class=\"dc\">{{ticket.id}}</span>&amp;country=<span class=\"fill\">[[COUNTRY]]</span>)now."
+    },
+    {
+     "id": 8,
+     "title_html": "Lists::Nested - Steps",
+     "snippet_html": "- Open settings - Pick one"
+    },
+    {
+     "id": 3,
+     "title_html": "Old greeting",
+     "snippet_html": "Hello, the refund team here."
+    },
+    {
+     "id": 12,
+     "title_html": "Roadmap::Mobile app",
+     "snippet_html": "Thanks for asking! Here is our roadmap (https://roadmaps.example.org/ios/). Read https://www.example.org or write to help@example.org."
+    },
+    {
+     "id": 2,
+     "title_html": "Thunderbird::Translate emails",
+     "snippet_html": "Open the add-ons page. Search for a translator."
+    },
+    {
+     "id": 5,
+     "title_html": "Thundermail::Aliases - Identity setup",
+     "snippet_html": "<span class=\"dc\">{{dc.signature_block}}</span> Hello <span class=\"dc\">{{ticket.requester.first_name}}</span>, Thanks for writing to us about your account. We read every message and we answer as soon as we can. Before you change anything, please make a backup of your …"
+    },
+    {
+     "id": 6,
+     "title_html": "Tie::A - Same",
+     "snippet_html": "Unique zebra word."
+    },
+    {
+     "id": 7,
+     "title_html": "Tie::B - Same",
+     "snippet_html": "Unique zebra word."
+    }
+   ]
+  },
+  {
+   "q": "",
+   "filters": {
+    "field": [
+     "priority",
+     "group_id"
+    ]
+   },
+   "sort": "",
+   "ids": [
+    8,
+    3
+   ],
+   "results": [
+    {
+     "id": 8,
+     "title_html": "Lists::Nested - Steps",
+     "snippet_html": "- Open settings - Pick one"
+    },
+    {
+     "id": 3,
+     "title_html": "Old greeting",
+     "snippet_html": "Hello, the refund team here."
+    }
+   ]
+  },
+  {
+   "q": "",
+   "filters": {
+    "field": [
+     "priority"
+    ],
+    "status": [
+     "active"
+    ]
+   },
+   "sort": "",
+   "ids": [],
+   "results": []
+  },
+  {
+   "q": "hello",
+   "filters": {
+    "category": [
+     "Donation",
+     "Thundermail"
+    ],
+    "group": [
+     "100"
+    ]
+   },
+   "sort": "",
+   "ids": [
+    1,
+    5
+   ],
+   "results": [
+    {
+     "id": 1,
+     "title_html": "Donation::Refund request",
+     "snippet_html": "<mark>Hello</mark> <span class=\"dc\">{{ticket.requester.first_name}}</span>,\n\nWe sent your refund today."
+    },
+    {
+     "id": 5,
+     "title_html": "Thundermail::Aliases - Identity setup",
+     "snippet_html": "<span class=\"dc\">{{dc.signature_block}}</span> <mark>Hello</mark> <span class=\"dc\">{{ticket.requester.first_name}}</span>,\n\nThanks for writing to us about your account. We read every message and we answer as…"
+    }
+   ]
+  },
+  {
+   "q": "",
+   "filters": {},
+   "sort": "title",
+   "ids": [
+    11,
+    9,
+    4,
+    10,
+    1,
+    13,
+    8,
+    3,
+    12,
+    2,
+    5,
+    6,
+    7
+   ],
+   "results": [
+    {
+     "id": 11,
+     "title_html": "  donation :: Card :: Update",
+     "snippet_html": "Change the card."
+    },
+    {
+     "id": 9,
+     "title_html": "&lt;b&gt;Escape&lt;/b&gt; &amp; &quot;quotes&quot; &#x27;single&#x27;",
+     "snippet_html": "&lt;img src=x onerror=alert(1)&gt; <span class=\"fill\">[[DATE]]</span>"
+    },
+    {
+     "id": 4,
+     "title_html": "Café closing",
+     "snippet_html": "Bye for now"
+    },
+    {
+     "id": 10,
+     "title_html": "Cut::Words - Apostrophe",
+     "snippet_html": "word0 word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12 word13 word14 word15 word16 word17 word18 word19 word20 word21 word22 word23 word24 word25 word26 word27 word28 word29 we know you&#x27;d like …"
+    },
+    {
+     "id": 1,
+     "title_html": "Donation::Refund request",
+     "snippet_html": "Hello <span class=\"dc\">{{ticket.requester.first_name}}</span>, We sent your refund today."
+    },
+    {
+     "id": 13,
+     "title_html": "Links::Unsafe and dynamic",
+     "snippet_html": "Click here (javascript:alert(1)) or open the form (https://forms.example.org/?ticket=<span class=\"dc\">{{ticket.id}}</span>&amp;country=<span class=\"fill\">[[COUNTRY]]</span>)now."
+    },
+    {
+     "id": 8,
+     "title_html": "Lists::Nested - Steps",
+     "snippet_html": "- Open settings - Pick one"
+    },
+    {
+     "id": 3,
+     "title_html": "Old greeting",
+     "snippet_html": "Hello, the refund team here."
+    },
+    {
+     "id": 12,
+     "title_html": "Roadmap::Mobile app",
+     "snippet_html": "Thanks for asking! Here is our roadmap (https://roadmaps.example.org/ios/). Read https://www.example.org or write to help@example.org."
+    },
+    {
+     "id": 2,
+     "title_html": "Thunderbird::Translate emails",
+     "snippet_html": "Open the add-ons page. Search for a translator."
+    },
+    {
+     "id": 5,
+     "title_html": "Thundermail::Aliases - Identity setup",
+     "snippet_html": "<span class=\"dc\">{{dc.signature_block}}</span> Hello <span class=\"dc\">{{ticket.requester.first_name}}</span>, Thanks for writing to us about your account. We read every message and we answer as soon as we can. Before you change anything, please make a backup of your …"
+    },
+    {
+     "id": 6,
+     "title_html": "Tie::A - Same",
+     "snippet_html": "Unique zebra word."
+    },
+    {
+     "id": 7,
+     "title_html": "Tie::B - Same",
+     "snippet_html": "Unique zebra word."
+    }
+   ]
+  },
+  {
+   "q": "",
+   "filters": {},
+   "sort": "-title",
+   "ids": [
+    7,
+    6,
+    5,
+    2,
+    12,
+    3,
+    8,
+    13,
+    1,
+    10,
+    4,
+    9,
+    11
+   ],
+   "results": [
+    {
+     "id": 7,
+     "title_html": "Tie::B - Same",
+     "snippet_html": "Unique zebra word."
+    },
+    {
+     "id": 6,
+     "title_html": "Tie::A - Same",
+     "snippet_html": "Unique zebra word."
+    },
+    {
+     "id": 5,
+     "title_html": "Thundermail::Aliases - Identity setup",
+     "snippet_html": "<span class=\"dc\">{{dc.signature_block}}</span> Hello <span class=\"dc\">{{ticket.requester.first_name}}</span>, Thanks for writing to us about your account. We read every message and we answer as soon as we can. Before you change anything, please make a backup of your …"
+    },
+    {
+     "id": 2,
+     "title_html": "Thunderbird::Translate emails",
+     "snippet_html": "Open the add-ons page. Search for a translator."
+    },
+    {
+     "id": 12,
+     "title_html": "Roadmap::Mobile app",
+     "snippet_html": "Thanks for asking! Here is our roadmap (https://roadmaps.example.org/ios/). Read https://www.example.org or write to help@example.org."
+    },
+    {
+     "id": 3,
+     "title_html": "Old greeting",
+     "snippet_html": "Hello, the refund team here."
+    },
+    {
+     "id": 8,
+     "title_html": "Lists::Nested - Steps",
+     "snippet_html": "- Open settings - Pick one"
+    },
+    {
+     "id": 13,
+     "title_html": "Links::Unsafe and dynamic",
+     "snippet_html": "Click here (javascript:alert(1)) or open the form (https://forms.example.org/?ticket=<span class=\"dc\">{{ticket.id}}</span>&amp;country=<span class=\"fill\">[[COUNTRY]]</span>)now."
+    },
+    {
+     "id": 1,
+     "title_html": "Donation::Refund request",
+     "snippet_html": "Hello <span class=\"dc\">{{ticket.requester.first_name}}</span>, We sent your refund today."
+    },
+    {
+     "id": 10,
+     "title_html": "Cut::Words - Apostrophe",
+     "snippet_html": "word0 word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12 word13 word14 word15 word16 word17 word18 word19 word20 word21 word22 word23 word24 word25 word26 word27 word28 word29 we know you&#x27;d like …"
+    },
+    {
+     "id": 4,
+     "title_html": "Café closing",
+     "snippet_html": "Bye for now"
+    },
+    {
+     "id": 9,
+     "title_html": "&lt;b&gt;Escape&lt;/b&gt; &amp; &quot;quotes&quot; &#x27;single&#x27;",
+     "snippet_html": "&lt;img src=x onerror=alert(1)&gt; <span class=\"fill\">[[DATE]]</span>"
+    },
+    {
+     "id": 11,
+     "title_html": "  donation :: Card :: Update",
+     "snippet_html": "Change the card."
+    }
+   ]
+  },
+  {
+   "q": "",
+   "filters": {},
+   "sort": "category",
+   "ids": [
+    9,
+    4,
+    3,
+    10,
+    11,
+    1,
+    13,
+    8,
+    12,
+    2,
+    5,
+    6,
+    7
+   ],
+   "results": [
+    {
+     "id": 9,
+     "title_html": "&lt;b&gt;Escape&lt;/b&gt; &amp; &quot;quotes&quot; &#x27;single&#x27;",
+     "snippet_html": "&lt;img src=x onerror=alert(1)&gt; <span class=\"fill\">[[DATE]]</span>"
+    },
+    {
+     "id": 4,
+     "title_html": "Café closing",
+     "snippet_html": "Bye for now"
+    },
+    {
+     "id": 3,
+     "title_html": "Old greeting",
+     "snippet_html": "Hello, the refund team here."
+    },
+    {
+     "id": 10,
+     "title_html": "Cut::Words - Apostrophe",
+     "snippet_html": "word0 word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12 word13 word14 word15 word16 word17 word18 word19 word20 word21 word22 word23 word24 word25 word26 word27 word28 word29 we know you&#x27;d like …"
+    },
+    {
+     "id": 11,
+     "title_html": "  donation :: Card :: Update",
+     "snippet_html": "Change the card."
+    },
+    {
+     "id": 1,
+     "title_html": "Donation::Refund request",
+     "snippet_html": "Hello <span class=\"dc\">{{ticket.requester.first_name}}</span>, We sent your refund today."
+    },
+    {
+     "id": 13,
+     "title_html": "Links::Unsafe and dynamic",
+     "snippet_html": "Click here (javascript:alert(1)) or open the form (https://forms.example.org/?ticket=<span class=\"dc\">{{ticket.id}}</span>&amp;country=<span class=\"fill\">[[COUNTRY]]</span>)now."
+    },
+    {
+     "id": 8,
+     "title_html": "Lists::Nested - Steps",
+     "snippet_html": "- Open settings - Pick one"
+    },
+    {
+     "id": 12,
+     "title_html": "Roadmap::Mobile app",
+     "snippet_html": "Thanks for asking! Here is our roadmap (https://roadmaps.example.org/ios/). Read https://www.example.org or write to help@example.org."
+    },
+    {
+     "id": 2,
+     "title_html": "Thunderbird::Translate emails",
+     "snippet_html": "Open the add-ons page. Search for a translator."
+    },
+    {
+     "id": 5,
+     "title_html": "Thundermail::Aliases - Identity setup",
+     "snippet_html": "<span class=\"dc\">{{dc.signature_block}}</span> Hello <span class=\"dc\">{{ticket.requester.first_name}}</span>, Thanks for writing to us about your account. We read every message and we answer as soon as we can. Before you change anything, please make a backup of your …"
+    },
+    {
+     "id": 6,
+     "title_html": "Tie::A - Same",
+     "snippet_html": "Unique zebra word."
+    },
+    {
+     "id": 7,
+     "title_html": "Tie::B - Same",
+     "snippet_html": "Unique zebra word."
+    }
+   ]
+  },
+  {
+   "q": "",
+   "filters": {},
+   "sort": "-category",
+   "ids": [
+    6,
+    7,
+    5,
+    2,
+    12,
+    8,
+    13,
+    11,
+    1,
+    10,
+    9,
+    4,
+    3
+   ],
+   "results": [
+    {
+     "id": 6,
+     "title_html": "Tie::A - Same",
+     "snippet_html": "Unique zebra word."
+    },
+    {
+     "id": 7,
+     "title_html": "Tie::B - Same",
+     "snippet_html": "Unique zebra word."
+    },
+    {
+     "id": 5,
+     "title_html": "Thundermail::Aliases - Identity setup",
+     "snippet_html": "<span class=\"dc\">{{dc.signature_block}}</span> Hello <span class=\"dc\">{{ticket.requester.first_name}}</span>, Thanks for writing to us about your account. We read every message and we answer as soon as we can. Before you change anything, please make a backup of your …"
+    },
+    {
+     "id": 2,
+     "title_html": "Thunderbird::Translate emails",
+     "snippet_html": "Open the add-ons page. Search for a translator."
+    },
+    {
+     "id": 12,
+     "title_html": "Roadmap::Mobile app",
+     "snippet_html": "Thanks for asking! Here is our roadmap (https://roadmaps.example.org/ios/). Read https://www.example.org or write to help@example.org."
+    },
+    {
+     "id": 8,
+     "title_html": "Lists::Nested - Steps",
+     "snippet_html": "- Open settings - Pick one"
+    },
+    {
+     "id": 13,
+     "title_html": "Links::Unsafe and dynamic",
+     "snippet_html": "Click here (javascript:alert(1)) or open the form (https://forms.example.org/?ticket=<span class=\"dc\">{{ticket.id}}</span>&amp;country=<span class=\"fill\">[[COUNTRY]]</span>)now."
+    },
+    {
+     "id": 11,
+     "title_html": "  donation :: Card :: Update",
+     "snippet_html": "Change the card."
+    },
+    {
+     "id": 1,
+     "title_html": "Donation::Refund request",
+     "snippet_html": "Hello <span class=\"dc\">{{ticket.requester.first_name}}</span>, We sent your refund today."
+    },
+    {
+     "id": 10,
+     "title_html": "Cut::Words - Apostrophe",
+     "snippet_html": "word0 word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12 word13 word14 word15 word16 word17 word18 word19 word20 word21 word22 word23 word24 word25 word26 word27 word28 word29 we know you&#x27;d like …"
+    },
+    {
+     "id": 9,
+     "title_html": "&lt;b&gt;Escape&lt;/b&gt; &amp; &quot;quotes&quot; &#x27;single&#x27;",
+     "snippet_html": "&lt;img src=x onerror=alert(1)&gt; <span class=\"fill\">[[DATE]]</span>"
+    },
+    {
+     "id": 4,
+     "title_html": "Café closing",
+     "snippet_html": "Bye for now"
+    },
+    {
+     "id": 3,
+     "title_html": "Old greeting",
+     "snippet_html": "Hello, the refund team here."
+    }
+   ]
+  },
+  {
+   "q": "",
+   "filters": {},
+   "sort": "group",
+   "ids": [
+    11,
+    9,
+    10,
+    13,
+    8,
+    3,
+    12,
+    2,
+    6,
+    7,
+    1,
+    5,
+    4
+   ],
+   "results": [
+    {
+     "id": 11,
+     "title_html": "  donation :: Card :: Update",
+     "snippet_html": "Change the card."
+    },
+    {
+     "id": 9,
+     "title_html": "&lt;b&gt;Escape&lt;/b&gt; &amp; &quot;quotes&quot; &#x27;single&#x27;",
+     "snippet_html": "&lt;img src=x onerror=alert(1)&gt; <span class=\"fill\">[[DATE]]</span>"
+    },
+    {
+     "id": 10,
+     "title_html": "Cut::Words - Apostrophe",
+     "snippet_html": "word0 word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12 word13 word14 word15 word16 word17 word18 word19 word20 word21 word22 word23 word24 word25 word26 word27 word28 word29 we know you&#x27;d like …"
+    },
+    {
+     "id": 13,
+     "title_html": "Links::Unsafe and dynamic",
+     "snippet_html": "Click here (javascript:alert(1)) or open the form (https://forms.example.org/?ticket=<span class=\"dc\">{{ticket.id}}</span>&amp;country=<span class=\"fill\">[[COUNTRY]]</span>)now."
+    },
+    {
+     "id": 8,
+     "title_html": "Lists::Nested - Steps",
+     "snippet_html": "- Open settings - Pick one"
+    },
+    {
+     "id": 3,
+     "title_html": "Old greeting",
+     "snippet_html": "Hello, the refund team here."
+    },
+    {
+     "id": 12,
+     "title_html": "Roadmap::Mobile app",
+     "snippet_html": "Thanks for asking! Here is our roadmap (https://roadmaps.example.org/ios/). Read https://www.example.org or write to help@example.org."
+    },
+    {
+     "id": 2,
+     "title_html": "Thunderbird::Translate emails",
+     "snippet_html": "Open the add-ons page. Search for a translator."
+    },
+    {
+     "id": 6,
+     "title_html": "Tie::A - Same",
+     "snippet_html": "Unique zebra word."
+    },
+    {
+     "id": 7,
+     "title_html": "Tie::B - Same",
+     "snippet_html": "Unique zebra word."
+    },
+    {
+     "id": 1,
+     "title_html": "Donation::Refund request",
+     "snippet_html": "Hello <span class=\"dc\">{{ticket.requester.first_name}}</span>, We sent your refund today."
+    },
+    {
+     "id": 5,
+     "title_html": "Thundermail::Aliases - Identity setup",
+     "snippet_html": "<span class=\"dc\">{{dc.signature_block}}</span> Hello <span class=\"dc\">{{ticket.requester.first_name}}</span>, Thanks for writing to us about your account. We read every message and we answer as soon as we can. Before you change anything, please make a backup of your …"
+    },
+    {
+     "id": 4,
+     "title_html": "Café closing",
+     "snippet_html": "Bye for now"
+    }
+   ]
+  },
+  {
+   "q": "",
+   "filters": {},
+   "sort": "-group",
+   "ids": [
+    4,
+    5,
+    1,
+    11,
+    9,
+    10,
+    13,
+    8,
+    3,
+    12,
+    2,
+    6,
+    7
+   ],
+   "results": [
+    {
+     "id": 4,
+     "title_html": "Café closing",
+     "snippet_html": "Bye for now"
+    },
+    {
+     "id": 5,
+     "title_html": "Thundermail::Aliases - Identity setup",
+     "snippet_html": "<span class=\"dc\">{{dc.signature_block}}</span> Hello <span class=\"dc\">{{ticket.requester.first_name}}</span>, Thanks for writing to us about your account. We read every message and we answer as soon as we can. Before you change anything, please make a backup of your …"
+    },
+    {
+     "id": 1,
+     "title_html": "Donation::Refund request",
+     "snippet_html": "Hello <span class=\"dc\">{{ticket.requester.first_name}}</span>, We sent your refund today."
+    },
+    {
+     "id": 11,
+     "title_html": "  donation :: Card :: Update",
+     "snippet_html": "Change the card."
+    },
+    {
+     "id": 9,
+     "title_html": "&lt;b&gt;Escape&lt;/b&gt; &amp; &quot;quotes&quot; &#x27;single&#x27;",
+     "snippet_html": "&lt;img src=x onerror=alert(1)&gt; <span class=\"fill\">[[DATE]]</span>"
+    },
+    {
+     "id": 10,
+     "title_html": "Cut::Words - Apostrophe",
+     "snippet_html": "word0 word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12 word13 word14 word15 word16 word17 word18 word19 word20 word21 word22 word23 word24 word25 word26 word27 word28 word29 we know you&#x27;d like …"
+    },
+    {
+     "id": 13,
+     "title_html": "Links::Unsafe and dynamic",
+     "snippet_html": "Click here (javascript:alert(1)) or open the form (https://forms.example.org/?ticket=<span class=\"dc\">{{ticket.id}}</span>&amp;country=<span class=\"fill\">[[COUNTRY]]</span>)now."
+    },
+    {
+     "id": 8,
+     "title_html": "Lists::Nested - Steps",
+     "snippet_html": "- Open settings - Pick one"
+    },
+    {
+     "id": 3,
+     "title_html": "Old greeting",
+     "snippet_html": "Hello, the refund team here."
+    },
+    {
+     "id": 12,
+     "title_html": "Roadmap::Mobile app",
+     "snippet_html": "Thanks for asking! Here is our roadmap (https://roadmaps.example.org/ios/). Read https://www.example.org or write to help@example.org."
+    },
+    {
+     "id": 2,
+     "title_html": "Thunderbird::Translate emails",
+     "snippet_html": "Open the add-ons page. Search for a translator."
+    },
+    {
+     "id": 6,
+     "title_html": "Tie::A - Same",
+     "snippet_html": "Unique zebra word."
+    },
+    {
+     "id": 7,
+     "title_html": "Tie::B - Same",
+     "snippet_html": "Unique zebra word."
+    }
+   ]
+  },
+  {
+   "q": "",
+   "filters": {},
+   "sort": "updated",
+   "ids": [
+    4,
+    8,
+    12,
+    9,
+    1,
+    13,
+    5,
+    10,
+    2,
+    6,
+    11,
+    3,
+    7
+   ],
+   "results": [
+    {
+     "id": 4,
+     "title_html": "Café closing",
+     "snippet_html": "Bye for now"
+    },
+    {
+     "id": 8,
+     "title_html": "Lists::Nested - Steps",
+     "snippet_html": "- Open settings - Pick one"
+    },
+    {
+     "id": 12,
+     "title_html": "Roadmap::Mobile app",
+     "snippet_html": "Thanks for asking! Here is our roadmap (https://roadmaps.example.org/ios/). Read https://www.example.org or write to help@example.org."
+    },
+    {
+     "id": 9,
+     "title_html": "&lt;b&gt;Escape&lt;/b&gt; &amp; &quot;quotes&quot; &#x27;single&#x27;",
+     "snippet_html": "&lt;img src=x onerror=alert(1)&gt; <span class=\"fill\">[[DATE]]</span>"
+    },
+    {
+     "id": 1,
+     "title_html": "Donation::Refund request",
+     "snippet_html": "Hello <span class=\"dc\">{{ticket.requester.first_name}}</span>, We sent your refund today."
+    },
+    {
+     "id": 13,
+     "title_html": "Links::Unsafe and dynamic",
+     "snippet_html": "Click here (javascript:alert(1)) or open the form (https://forms.example.org/?ticket=<span class=\"dc\">{{ticket.id}}</span>&amp;country=<span class=\"fill\">[[COUNTRY]]</span>)now."
+    },
+    {
+     "id": 5,
+     "title_html": "Thundermail::Aliases - Identity setup",
+     "snippet_html": "<span class=\"dc\">{{dc.signature_block}}</span> Hello <span class=\"dc\">{{ticket.requester.first_name}}</span>, Thanks for writing to us about your account. We read every message and we answer as soon as we can. Before you change anything, please make a backup of your …"
+    },
+    {
+     "id": 10,
+     "title_html": "Cut::Words - Apostrophe",
+     "snippet_html": "word0 word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12 word13 word14 word15 word16 word17 word18 word19 word20 word21 word22 word23 word24 word25 word26 word27 word28 word29 we know you&#x27;d like …"
+    },
+    {
+     "id": 2,
+     "title_html": "Thunderbird::Translate emails",
+     "snippet_html": "Open the add-ons page. Search for a translator."
+    },
+    {
+     "id": 6,
+     "title_html": "Tie::A - Same",
+     "snippet_html": "Unique zebra word."
+    },
+    {
+     "id": 11,
+     "title_html": "  donation :: Card :: Update",
+     "snippet_html": "Change the card."
+    },
+    {
+     "id": 3,
+     "title_html": "Old greeting",
+     "snippet_html": "Hello, the refund team here."
+    },
+    {
+     "id": 7,
+     "title_html": "Tie::B - Same",
+     "snippet_html": "Unique zebra word."
+    }
+   ]
+  },
+  {
+   "q": "",
+   "filters": {},
+   "sort": "-updated",
+   "ids": [
+    11,
+    3,
+    7,
+    10,
+    2,
+    6,
+    9,
+    1,
+    13,
+    5,
+    4,
+    8,
+    12
+   ],
+   "results": [
+    {
+     "id": 11,
+     "title_html": "  donation :: Card :: Update",
+     "snippet_html": "Change the card."
+    },
+    {
+     "id": 3,
+     "title_html": "Old greeting",
+     "snippet_html": "Hello, the refund team here."
+    },
+    {
+     "id": 7,
+     "title_html": "Tie::B - Same",
+     "snippet_html": "Unique zebra word."
+    },
+    {
+     "id": 10,
+     "title_html": "Cut::Words - Apostrophe",
+     "snippet_html": "word0 word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12 word13 word14 word15 word16 word17 word18 word19 word20 word21 word22 word23 word24 word25 word26 word27 word28 word29 we know you&#x27;d like …"
+    },
+    {
+     "id": 2,
+     "title_html": "Thunderbird::Translate emails",
+     "snippet_html": "Open the add-ons page. Search for a translator."
+    },
+    {
+     "id": 6,
+     "title_html": "Tie::A - Same",
+     "snippet_html": "Unique zebra word."
+    },
+    {
+     "id": 9,
+     "title_html": "&lt;b&gt;Escape&lt;/b&gt; &amp; &quot;quotes&quot; &#x27;single&#x27;",
+     "snippet_html": "&lt;img src=x onerror=alert(1)&gt; <span class=\"fill\">[[DATE]]</span>"
+    },
+    {
+     "id": 1,
+     "title_html": "Donation::Refund request",
+     "snippet_html": "Hello <span class=\"dc\">{{ticket.requester.first_name}}</span>, We sent your refund today."
+    },
+    {
+     "id": 13,
+     "title_html": "Links::Unsafe and dynamic",
+     "snippet_html": "Click here (javascript:alert(1)) or open the form (https://forms.example.org/?ticket=<span class=\"dc\">{{ticket.id}}</span>&amp;country=<span class=\"fill\">[[COUNTRY]]</span>)now."
+    },
+    {
+     "id": 5,
+     "title_html": "Thundermail::Aliases - Identity setup",
+     "snippet_html": "<span class=\"dc\">{{dc.signature_block}}</span> Hello <span class=\"dc\">{{ticket.requester.first_name}}</span>, Thanks for writing to us about your account. We read every message and we answer as soon as we can. Before you change anything, please make a backup of your …"
+    },
+    {
+     "id": 4,
+     "title_html": "Café closing",
+     "snippet_html": "Bye for now"
+    },
+    {
+     "id": 8,
+     "title_html": "Lists::Nested - Steps",
+     "snippet_html": "- Open settings - Pick one"
+    },
+    {
+     "id": 12,
+     "title_html": "Roadmap::Mobile app",
+     "snippet_html": "Thanks for asking! Here is our roadmap (https://roadmaps.example.org/ios/). Read https://www.example.org or write to help@example.org."
+    }
+   ]
+  },
+  {
+   "q": "",
+   "filters": {},
+   "sort": "--title",
+   "ids": [
+    11,
+    9,
+    4,
+    10,
+    1,
+    13,
+    8,
+    3,
+    12,
+    2,
+    5,
+    6,
+    7
+   ],
+   "results": [
+    {
+     "id": 11,
+     "title_html": "  donation :: Card :: Update",
+     "snippet_html": "Change the card."
+    },
+    {
+     "id": 9,
+     "title_html": "&lt;b&gt;Escape&lt;/b&gt; &amp; &quot;quotes&quot; &#x27;single&#x27;",
+     "snippet_html": "&lt;img src=x onerror=alert(1)&gt; <span class=\"fill\">[[DATE]]</span>"
+    },
+    {
+     "id": 4,
+     "title_html": "Café closing",
+     "snippet_html": "Bye for now"
+    },
+    {
+     "id": 10,
+     "title_html": "Cut::Words - Apostrophe",
+     "snippet_html": "word0 word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12 word13 word14 word15 word16 word17 word18 word19 word20 word21 word22 word23 word24 word25 word26 word27 word28 word29 we know you&#x27;d like …"
+    },
+    {
+     "id": 1,
+     "title_html": "Donation::Refund request",
+     "snippet_html": "Hello <span class=\"dc\">{{ticket.requester.first_name}}</span>, We sent your refund today."
+    },
+    {
+     "id": 13,
+     "title_html": "Links::Unsafe and dynamic",
+     "snippet_html": "Click here (javascript:alert(1)) or open the form (https://forms.example.org/?ticket=<span class=\"dc\">{{ticket.id}}</span>&amp;country=<span class=\"fill\">[[COUNTRY]]</span>)now."
+    },
+    {
+     "id": 8,
+     "title_html": "Lists::Nested - Steps",
+     "snippet_html": "- Open settings - Pick one"
+    },
+    {
+     "id": 3,
+     "title_html": "Old greeting",
+     "snippet_html": "Hello, the refund team here."
+    },
+    {
+     "id": 12,
+     "title_html": "Roadmap::Mobile app",
+     "snippet_html": "Thanks for asking! Here is our roadmap (https://roadmaps.example.org/ios/). Read https://www.example.org or write to help@example.org."
+    },
+    {
+     "id": 2,
+     "title_html": "Thunderbird::Translate emails",
+     "snippet_html": "Open the add-ons page. Search for a translator."
+    },
+    {
+     "id": 5,
+     "title_html": "Thundermail::Aliases - Identity setup",
+     "snippet_html": "<span class=\"dc\">{{dc.signature_block}}</span> Hello <span class=\"dc\">{{ticket.requester.first_name}}</span>, Thanks for writing to us about your account. We read every message and we answer as soon as we can. Before you change anything, please make a backup of your …"
+    },
+    {
+     "id": 6,
+     "title_html": "Tie::A - Same",
+     "snippet_html": "Unique zebra word."
+    },
+    {
+     "id": 7,
+     "title_html": "Tie::B - Same",
+     "snippet_html": "Unique zebra word."
+    }
+   ]
+  },
+  {
+   "q": "",
+   "filters": {},
+   "sort": "bogus",
+   "ids": [
+    11,
+    9,
+    4,
+    10,
+    1,
+    13,
+    8,
+    3,
+    12,
+    2,
+    5,
+    6,
+    7
+   ],
+   "results": [
+    {
+     "id": 11,
+     "title_html": "  donation :: Card :: Update",
+     "snippet_html": "Change the card."
+    },
+    {
+     "id": 9,
+     "title_html": "&lt;b&gt;Escape&lt;/b&gt; &amp; &quot;quotes&quot; &#x27;single&#x27;",
+     "snippet_html": "&lt;img src=x onerror=alert(1)&gt; <span class=\"fill\">[[DATE]]</span>"
+    },
+    {
+     "id": 4,
+     "title_html": "Café closing",
+     "snippet_html": "Bye for now"
+    },
+    {
+     "id": 10,
+     "title_html": "Cut::Words - Apostrophe",
+     "snippet_html": "word0 word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12 word13 word14 word15 word16 word17 word18 word19 word20 word21 word22 word23 word24 word25 word26 word27 word28 word29 we know you&#x27;d like …"
+    },
+    {
+     "id": 1,
+     "title_html": "Donation::Refund request",
+     "snippet_html": "Hello <span class=\"dc\">{{ticket.requester.first_name}}</span>, We sent your refund today."
+    },
+    {
+     "id": 13,
+     "title_html": "Links::Unsafe and dynamic",
+     "snippet_html": "Click here (javascript:alert(1)) or open the form (https://forms.example.org/?ticket=<span class=\"dc\">{{ticket.id}}</span>&amp;country=<span class=\"fill\">[[COUNTRY]]</span>)now."
+    },
+    {
+     "id": 8,
+     "title_html": "Lists::Nested - Steps",
+     "snippet_html": "- Open settings - Pick one"
+    },
+    {
+     "id": 3,
+     "title_html": "Old greeting",
+     "snippet_html": "Hello, the refund team here."
+    },
+    {
+     "id": 12,
+     "title_html": "Roadmap::Mobile app",
+     "snippet_html": "Thanks for asking! Here is our roadmap (https://roadmaps.example.org/ios/). Read https://www.example.org or write to help@example.org."
+    },
+    {
+     "id": 2,
+     "title_html": "Thunderbird::Translate emails",
+     "snippet_html": "Open the add-ons page. Search for a translator."
+    },
+    {
+     "id": 5,
+     "title_html": "Thundermail::Aliases - Identity setup",
+     "snippet_html": "<span class=\"dc\">{{dc.signature_block}}</span> Hello <span class=\"dc\">{{ticket.requester.first_name}}</span>, Thanks for writing to us about your account. We read every message and we answer as soon as we can. Before you change anything, please make a backup of your …"
+    },
+    {
+     "id": 6,
+     "title_html": "Tie::A - Same",
+     "snippet_html": "Unique zebra word."
+    },
+    {
+     "id": 7,
+     "title_html": "Tie::B - Same",
+     "snippet_html": "Unique zebra word."
+    }
+   ]
+  },
+  {
+   "q": "hello",
+   "filters": {},
+   "sort": "-title",
+   "ids": [
+    5,
+    3,
+    1
+   ],
+   "results": [
+    {
+     "id": 5,
+     "title_html": "Thundermail::Aliases - Identity setup",
+     "snippet_html": "<span class=\"dc\">{{dc.signature_block}}</span> <mark>Hello</mark> <span class=\"dc\">{{ticket.requester.first_name}}</span>,\n\nThanks for writing to us about your account. We read every message and we answer as…"
+    },
+    {
+     "id": 3,
+     "title_html": "Old greeting",
+     "snippet_html": "<mark>Hello</mark>, the refund team here."
+    },
+    {
+     "id": 1,
+     "title_html": "Donation::Refund request",
+     "snippet_html": "<mark>Hello</mark> <span class=\"dc\">{{ticket.requester.first_name}}</span>,\n\nWe sent your refund today."
+    }
+   ]
+  },
+  {
+   "q": "zebra",
+   "filters": {},
+   "sort": "updated",
+   "ids": [
+    6,
+    10,
+    7
+   ],
+   "results": [
+    {
+     "id": 6,
+     "title_html": "Tie::A - Same",
+     "snippet_html": "Unique <mark>zebra</mark> word."
+    },
+    {
+     "id": 10,
+     "title_html": "Cut::Words - Apostrophe",
+     "snippet_html": "…word20 word21 word22 word23 word24 word25 word26 word27 word28 word29 we know you&#x27;d like a <mark>zebrafish</mark> now, and <span class=\"dc\">{{ticket.requester.first_name}}</span> too"
+    },
+    {
+     "id": 7,
+     "title_html": "Tie::B - Same",
+     "snippet_html": "Unique <mark>zebra</mark> word."
+    }
+   ]
+  },
+  {
+   "q": "",
+   "filters": {
+    "category": [
+     "Tie",
+     "Donation"
+    ]
+   },
+   "sort": "-updated",
+   "ids": [
+    11,
+    7,
+    6,
+    1
+   ],
+   "results": [
+    {
+     "id": 11,
+     "title_html": "  donation :: Card :: Update",
+     "snippet_html": "Change the card."
+    },
+    {
+     "id": 7,
+     "title_html": "Tie::B - Same",
+     "snippet_html": "Unique zebra word."
+    },
+    {
+     "id": 6,
+     "title_html": "Tie::A - Same",
+     "snippet_html": "Unique zebra word."
+    },
+    {
+     "id": 1,
+     "title_html": "Donation::Refund request",
+     "snippet_html": "Hello <span class=\"dc\">{{ticket.requester.first_name}}</span>, We sent your refund today."
     }
    ]
   }
@@ -1582,5 +3069,378 @@
    "::",
    3
   ]
+ ],
+ "facet_choices": [
+  [
+   "category",
+   "Category",
+   [
+    [
+     "Cut",
+     "Cut",
+     1
+    ],
+    [
+     "donation",
+     "donation",
+     2
+    ],
+    [
+     "Links",
+     "Links",
+     1
+    ],
+    [
+     "Lists",
+     "Lists",
+     1
+    ],
+    [
+     "Roadmap",
+     "Roadmap",
+     1
+    ],
+    [
+     "Thunderbird",
+     "Thunderbird",
+     1
+    ],
+    [
+     "Thundermail",
+     "Thundermail",
+     1
+    ],
+    [
+     "Tie",
+     "Tie",
+     2
+    ],
+    [
+     "::",
+     "(no category)",
+     3
+    ]
+   ]
+  ],
+  [
+   "group",
+   "Available for",
+   [
+    [
+     "none",
+     "All agents",
+     10
+    ],
+    [
+     "100",
+     "Donor Support",
+     2
+    ],
+    [
+     "999",
+     "Old team (deleted)",
+     1
+    ],
+    [
+     "200",
+     "Tier 2",
+     1
+    ]
+   ]
+  ],
+  [
+   "status",
+   "Status",
+   [
+    [
+     "active",
+     "active",
+     12
+    ],
+    [
+     "inactive",
+     "inactive",
+     1
+    ]
+   ]
+  ],
+  [
+   "field",
+   "Changes field",
+   [
+    [
+     "comment_value",
+     "comment_value",
+     1
+    ],
+    [
+     "comment_value_html",
+     "comment_value_html",
+     12
+    ],
+    [
+     "current_tags",
+     "current_tags",
+     3
+    ],
+    [
+     "group_id",
+     "group_id",
+     1
+    ],
+    [
+     "priority",
+     "priority",
+     1
+    ]
+   ]
+  ],
+  [
+   "tag",
+   "Zendesk tags",
+   [
+    [
+     "donor",
+     "donor",
+     1
+    ],
+    [
+     "macro_donors_refund",
+     "macro_donors_refund",
+     1
+    ],
+    [
+     "macro_thundermail_aliases",
+     "macro_thundermail_aliases",
+     1
+    ],
+    [
+     "tb_translate",
+     "tb_translate",
+     1
+    ]
+   ]
+  ]
+ ],
+ "parse_filters": [
+  {
+   "params": {},
+   "filters": {}
+  },
+  {
+   "params": {
+    "status": "all"
+   },
+   "filters": {}
+  },
+  {
+   "params": {
+    "category": [
+     "A",
+     "a",
+     "B",
+     ""
+    ],
+    "tag": "x",
+    "unknown": [
+     "y"
+    ]
+   },
+   "filters": {
+    "category": [
+     "A",
+     "B"
+    ],
+    "tag": [
+     "x"
+    ]
+   }
+  },
+  {
+   "params": {
+    "status": [
+     "inactive",
+     "active",
+     "inactive"
+    ],
+    "group": [
+     "none"
+    ],
+    "field": [],
+    "q": "z"
+   },
+   "filters": {
+    "group": [
+     "none"
+    ],
+    "status": [
+     "inactive",
+     "active"
+    ]
+   }
+  }
+ ],
+ "parse_sort": [
+  {
+   "value": "",
+   "sort": ""
+  },
+  {
+   "value": "title",
+   "sort": "title"
+  },
+  {
+   "value": "-updated",
+   "sort": "-updated"
+  },
+  {
+   "value": "--title",
+   "sort": ""
+  },
+  {
+   "value": "-",
+   "sort": ""
+  },
+  {
+   "value": "Title",
+   "sort": ""
+  },
+  {
+   "value": "group-",
+   "sort": ""
+  },
+  {
+   "value": "bogus",
+   "sort": ""
+  }
+ ],
+ "next_sort": [
+  {
+   "current": "",
+   "column": "title",
+   "sort": "title"
+  },
+  {
+   "current": "",
+   "column": "category",
+   "sort": "category"
+  },
+  {
+   "current": "",
+   "column": "group",
+   "sort": "group"
+  },
+  {
+   "current": "",
+   "column": "updated",
+   "sort": "-updated"
+  },
+  {
+   "current": "title",
+   "column": "title",
+   "sort": "-title"
+  },
+  {
+   "current": "title",
+   "column": "category",
+   "sort": "category"
+  },
+  {
+   "current": "title",
+   "column": "group",
+   "sort": "group"
+  },
+  {
+   "current": "title",
+   "column": "updated",
+   "sort": "-updated"
+  },
+  {
+   "current": "-title",
+   "column": "title",
+   "sort": "title"
+  },
+  {
+   "current": "-title",
+   "column": "category",
+   "sort": "category"
+  },
+  {
+   "current": "-title",
+   "column": "group",
+   "sort": "group"
+  },
+  {
+   "current": "-title",
+   "column": "updated",
+   "sort": "-updated"
+  },
+  {
+   "current": "-updated",
+   "column": "title",
+   "sort": "title"
+  },
+  {
+   "current": "-updated",
+   "column": "category",
+   "sort": "category"
+  },
+  {
+   "current": "-updated",
+   "column": "group",
+   "sort": "group"
+  },
+  {
+   "current": "-updated",
+   "column": "updated",
+   "sort": "updated"
+  }
+ ],
+ "search_query": [
+  {
+   "args": [
+    "",
+    {},
+    "",
+    "",
+    false
+   ],
+   "query": ""
+  },
+  {
+   "args": [
+    "refund me",
+    {
+     "category": [
+      "Donation",
+      "::"
+     ],
+     "tag": [
+      "a&b"
+     ]
+    },
+    "table",
+    "-updated",
+    true
+   ],
+   "query": "q=refund+me&category=Donation&category=%3A%3A&tag=a%26b&view=table&sort=-updated&picker=open"
+  },
+  {
+   "args": [
+    "é/ü?",
+    {
+     "group": [
+      "none"
+     ],
+     "status": [
+      "active"
+     ]
+    },
+    "list",
+    "",
+    false
+   ],
+   "query": "q=%C3%A9%2F%C3%BC%3F&group=none&status=active"
+  }
  ]
 }
