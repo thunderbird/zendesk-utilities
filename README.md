@@ -32,7 +32,7 @@ For a trial run, add `--limit 3`. To rewrite all files, add `--force`. If the se
 uv run macro_search.py --open
 ```
 
-The app is at `http://127.0.0.1:8765/`. It searches the titles, descriptions, replies, and tags. You can filter the results by status, by group, by the ticket field that a macro changes, and by category. The category is the text before the first `::` in the title, for example `Billing` in `Billing::Refund request`. Click the category of a result to see all macros of that category. Each result links to the macro in Zendesk Admin Center. After you download the macros again, restart the app.
+The app is at `http://127.0.0.1:8765/`. It searches the titles, descriptions, replies, and tags. Open "Filter by tag" to filter the results by category, group, status, the ticket field that a macro changes, and Zendesk tag. The category is the text before the first `::` in the title, for example `Billing` in `Billing::Refund request`. You can select more than one tag. A macro must have one of the selected tags of each group. For example, the categories `Billing` and `Donation` and the status `active` show the active macros of both categories. Click a tag on a result to add it to the filter. Click "Table" to see the results as a table, and click a column heading to sort it. Each result links to the macro in Zendesk Admin Center. After you download the macros again, restart the app.
 
 ## Share the search with colleagues
 
