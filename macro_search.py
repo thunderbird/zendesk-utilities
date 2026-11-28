@@ -147,6 +147,15 @@ def group_ids(macro: dict) -> list[int]:
     return list(r.get("ids") or ([r["id"]] if r.get("id") else []))
 
 
+NO_CATEGORY = "::"  # filter value for titles without a category; no category contains "::"
+
+
+def macro_category(macro: dict) -> str:
+    """The text before the first "::" in the title, or "" without one (issue #11)."""
+    title = as_text(macro.get("title"))
+    return title.split("::", 1)[0].strip() if "::" in title else ""
+
+
 # --- query and matching -----------------------------------------------------
 #
 # macro_search.html repeats every function in this section in JavaScript, so
@@ -345,9 +354,27 @@ class MacroIndex:
                 counts[f] = counts.get(f, 0) + 1
         return sorted(counts.items())
 
+    def category_choices(self) -> list[tuple[str, int]]:
+        """(category, count), sorted by name, then NO_CATEGORY if any title has none.
+
+        Letter case does not matter. The label is the spelling of the first
+        macro in title order.
+        """
+        labels: dict[str, str] = {}
+        counts: dict[str, int] = {}
+        for i in self.order:
+            c = macro_category(self.macros[i])
+            labels.setdefault(c.lower(), c)
+            counts[c.lower()] = counts.get(c.lower(), 0) + 1
+        choices = sorted(((labels[k], n) for k, n in counts.items() if k), key=lambda c: c[0].lower())
+        if "" in counts:
+            choices.append((NO_CATEGORY, counts[""]))
+        return choices
+
     # Search ------------------------------------------------------------
 
-    def search(self, q: str = "", status: str = "all", group: str = "", field: str = "") -> list[dict]:
+    def search(self, q: str = "", status: str = "all", group: str = "", field: str = "",
+               category: str = "") -> list[dict]:
         query = fts_query(q)
         if query:
             terms = query_terms(q)
@@ -373,6 +400,8 @@ class MacroIndex:
             if group not in ("", "none") and group not in {str(g) for g in group_ids(m)}:
                 continue
             if field and field not in {a.get("field") for a in actions(m)}:
+                continue
+            if category and macro_category(m).lower() != ("" if category == NO_CATEGORY else category.lower()):
                 continue
             results.append({"id": macro_id, "title": title, "snippet": snip, "macro": m})
         return results
@@ -491,10 +520,20 @@ def zendesk_link(index: MacroIndex, macro_id: int) -> str:
             'rel="noopener noreferrer">Open in Zendesk</a>')
 
 
+def category_label(value: str) -> str:
+    return "(no category)" if value == NO_CATEGORY else value
+
+
+def category_link(macro: dict) -> str:
+    """A link that shows all macros of the macro's category."""
+    value = macro_category(macro) or NO_CATEGORY
+    return f'<a href="/?{esc(urlencode({"category": value}))}">{esc(category_label(value))}</a>'
+
+
 def render_search(index: MacroIndex, params: dict[str, str]) -> str:
-    q, status, group, field = (params.get(k, "") for k in ("q", "status", "group", "field"))
+    q, status, group, field, category = (params.get(k, "") for k in ("q", "status", "group", "field", "category"))
     status = status if status in ("active", "inactive") else "all"
-    results = index.search(q, status, group, field)
+    results = index.search(q, status, group, field, category)
     qs = urlencode({k: v for k, v in params.items() if v})
     detail_suffix = f"?{qs}" if qs else ""
 
@@ -507,6 +546,9 @@ def render_search(index: MacroIndex, params: dict[str, str]) -> str:
         + options([("", "Any group")] + [(v, f"{label} ({n})") for v, label, n in index.group_choices()], group)
         + '</select><select name="field" aria-label="Changes field">'
         + options([("", "Any field")] + [(f, f"{f} ({n})") for f, n in index.field_choices()], field)
+        + '</select><select name="category" aria-label="Category">'
+        + options([("", "All categories")]
+                  + [(c, f"{category_label(c)} ({n})") for c, n in index.category_choices()], category)
         + '</select><button type="submit">Search</button></form>'
     )
 
@@ -517,7 +559,8 @@ def render_search(index: MacroIndex, params: dict[str, str]) -> str:
         items.append(
             '<div class="result">'
             f'<h2><a href="/macro/{r["id"]}{esc(detail_suffix)}">{marked(r["title"])}</a></h2>'
-            f'<div class="meta">{status_badge(m)} · {esc(index.available_for(m))} · {zendesk_link(index, r["id"])}</div>'
+            f'<div class="meta">{status_badge(m)} · {category_link(m)} · {esc(index.available_for(m))} · '
+            f'{zendesk_link(index, r["id"])}</div>'
             + (f'<p class="snippet">{marked(r["snippet"])}</p>' if r["snippet"] else "")
             + "</div>"
         )
