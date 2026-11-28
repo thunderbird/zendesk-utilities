@@ -102,6 +102,25 @@ The macro ID is the number at the end of the macro address in Admin Center, for 
 
 To stop before Admin Center, add `--dry-run`. After the script finishes, test the macro on a new ticket, delete the test ticket, and ask for a review. The script never changes or deletes an existing macro.
 
+### The web app
+
+`new_macro_app.py` prepares the same draft in a web app on this computer. It uses only the Python standard library, so it needs no Playwright and no Firefox profile.
+
+```sh
+uv run new_macro_app.py --open
+```
+
+The app opens at `http://127.0.0.1:8766`. Fill in the brand, the name, and the description. For the reply, paste plain text, paste HTML source, or give the URL of a public page. The app lists similar macros, checks the draft against the process rules, and writes a draft without problems to `~/zendesk-data/drafts/`.
+
+The app never sends anything to Zendesk. You create the macro yourself:
+
+1. Click "Open the clone of the template". Admin Center shows an unsaved copy of the template.
+2. Copy the name, the description, and the reply from the app into the form. Copy the reply from the formatted box, so that the links stay.
+3. Replace the template tag with the new tag.
+4. Click Create, and test the macro as described above.
+
+The app reads a URL as a signed-out visitor. If a page needs a sign-in, or builds its text with JavaScript, copy the text from your browser and paste it.
+
 ## Tests
 
 The tests use no browser and no network.

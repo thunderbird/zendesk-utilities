@@ -228,3 +228,6 @@ zendesk-data/
 firefox-profile/
 macros/
 groups/
+
+# Playwright MCP snapshots can hold real macro text.
+.playwright-mcp/
