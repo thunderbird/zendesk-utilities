@@ -39,8 +39,16 @@ The app is at `http://127.0.0.1:8765/`. It searches the titles, descriptions, re
 `macro_search.html` is the same search app as one HTML file. It runs in any modern browser on Windows, macOS, and Linux, with nothing to install.
 
 1. Send your colleague `macro_search.html` from the latest GitHub release, together with `~/zendesk-data/macros/macros.json` and `~/zendesk-data/groups/groups.json`. Use Thundermail Send or another secure channel for the two JSON files.
-2. The colleague opens `macro_search.html` in a browser.
+2. The colleague opens `macro_search.html` in a browser. To do this, the colleague double-clicks the file, or drags it onto a browser window. The colleague can also open it from a terminal:
+
+   | System | Firefox | Default browser |
+   | --- | --- | --- |
+   | macOS | `open -a Firefox macro_search.html` | `open macro_search.html` |
+   | Linux | `firefox macro_search.html` | `xdg-open macro_search.html` |
+   | Windows (Command Prompt) | `start firefox macro_search.html` | `start macro_search.html` |
+
 3. The colleague drags the two JSON files onto the page, or chooses them with the file picker.
+4. After a reload, the colleague must choose the two files again.
 
 The page sends nothing over the network, and it keeps the macros only in memory. When the tab closes, the data is gone. The page shows when you exported the files, for example "Macros exported 2026-11-27 18:24 UTC". To send newer data, run `uv run scrape_macros.py` again.
 
