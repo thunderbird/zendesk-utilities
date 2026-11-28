@@ -148,8 +148,8 @@ class LoadAndSearch(BrowserTestCase):
     """The way a colleague uses the page: choose files, search, open a macro."""
 
     def test_load_files_search_and_open_a_macro(self):
-        # Tests in this class share one page, so start from the load screen.
-        self.page.evaluate("location.hash = '#/load'")
+        # A fresh page: after a load, the app goes back to the last search or macro page.
+        self.page.goto(HTML.resolve().as_uri())
         self.page.wait_for_selector("#files")
         with tempfile.TemporaryDirectory() as tmp:
             macros = Path(tmp) / "macros.json"
@@ -226,6 +226,41 @@ class LoadAndSearch(BrowserTestCase):
         self.assertEqual(ids, expected)
         self.assertEqual(self.page.get_attribute("th[aria-sort=descending] a", "href"),
                          "#/?category=Tie&category=Donation&view=table&sort=updated")
+
+    def test_add_groups_later_keeps_the_search(self):
+        # A fresh page, so that no file from another test is loaded (issue #18).
+        self.page.goto(HTML.resolve().as_uri())
+        self.page.wait_for_selector("#files")
+        search = "#/?q=hello&group=100&view=table"
+        with tempfile.TemporaryDirectory() as tmp:
+            macros = Path(tmp) / "macros.json"
+            groups = Path(tmp) / "groups.json"
+            macros.write_text(json.dumps({"macros": CASES["macros"]}))
+            groups.write_text(json.dumps({"groups": CASES["groups"]}))
+            self.page.set_input_files("#files", [str(macros)])
+            self.page.wait_for_selector("form#search")
+            self.page.evaluate(f"location.hash = '{search}'")
+            self.page.wait_for_selector("text=Available for: 100 ✕")
+            self.assertIn("Group names are missing.", self.page.inner_text(".notice"))
+
+            # The load screen says that the macros stay, and goes back to the search.
+            self.page.evaluate("location.hash = '#/load'")
+            self.page.wait_for_selector("text=Choose groups.json to add group names. The loaded macros stay.")
+            self.page.click("#show")
+            self.page.wait_for_function(f"location.hash === '{search}'")
+
+            # A file that is not groups.json is an error, and the search stays.
+            self.page.set_input_files("#groups-file", [str(macros)])
+            self.page.wait_for_selector("text=macros.json is not groups.json.")
+            self.assertEqual(self.page.evaluate("location.hash"), search)
+
+            self.page.set_input_files("#groups-file", [str(groups)])
+            self.page.wait_for_selector("text=Available for: Donor Support ✕")
+        self.assertEqual(self.page.evaluate("location.hash"), search)
+        self.assertEqual(self.page.locator(".notice").count(), 0)
+        self.assertEqual(self.page.locator(".error").count(), 0)
+        self.assertEqual(self.page.input_value("input[name=q]"), "hello")
+        self.assertIn("Donor Support", self.page.inner_text("table.results"))
 
     def test_escaped_title_renders_as_text(self):
         self.page.evaluate("([m, g]) => window.macroSearchTest.load(m, g)",

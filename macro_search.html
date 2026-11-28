@@ -16,7 +16,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'sha256-x4XQ+FboVAaQkze0kPppjZmhbqmZvRZX53tWazpROO8='; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'sha256-BlLtS96nKX9EszIdgNylEwnkIxxM8lLv+8nmkEviyMc='; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Zendesk macros</title>
@@ -691,8 +691,12 @@ button.link { background: none; border: none; color: #0b57d0; cursor: pointer; p
     if (exported) count += ` · ${exported}`;
     const legend = '<p class="legend"><span class="dc">{{pink}}</span> dynamic content · ' +
                    '<span class="fill">[[orange]]</span> replace before sending</p>';
-    const notice = index.groupNames.size ? "" :
-      '<p class="notice">Load groups.json to see group names instead of group IDs.</p>';
+    // Issue #18: add groups.json here, and the same search shows again.
+    const notice = (index.groupNames.size ? "" :
+      '<p class="notice">Group names are missing. Choose groups.json ' +
+      '<input type="file" id="groups-file" accept=".json,application/json" aria-label="Choose groups.json">' +
+      " or drag it onto this page.</p>") +
+      (loadError ? `<p class="error">${esc(loadError)}</p>` : "");
     document.title = st.q ? `${st.q} - Zendesk macros` : "Zendesk macros";
     return `<h1>Zendesk macros</h1>${form}${selectedRow(st)}${tagPicker(st)}${viewToggle(st)}` +
            `<p class="count">${esc(count)}</p>${legend}${notice}` +
@@ -729,13 +733,16 @@ button.link { background: none; border: none; color: #0b57d0; cursor: pointer; p
 
   const loaded = { macros: null, groups: null };
   let loadError = "";
+  let lastPage = "";  // the last search or macro page, to go back to after a load
 
   function renderLoad() {
     document.title = "Zendesk macros";
     const have = [loaded.macros && `macros.json (${loaded.macros.macros.length} macros)`,
                   loaded.groups && `groups.json (${loaded.groups.groups.length} groups)`].filter((x) => x);
-    return '<h1>Zendesk macros</h1><div class="drop" id="drop">' +
-      "<p>Drag <b>macros.json</b> and <b>groups.json</b> here, or choose them:</p>" +
+    const prompt = loaded.macros && !loaded.groups
+      ? "<p>Choose <b>groups.json</b> to add group names. The loaded macros stay.</p>"
+      : "<p>Drag <b>macros.json</b> and <b>groups.json</b> here, or choose them:</p>";
+    return '<h1>Zendesk macros</h1><div class="drop" id="drop">' + prompt +
       '<p><input type="file" id="files" accept=".json,application/json" multiple></p>' +
       (have.length ? `<p class="meta">Loaded: ${esc(have.join(", "))}</p>` : "") +
       (loaded.macros ? '<p><button type="button" id="show">Search the macros</button></p>' : "") +
@@ -747,14 +754,17 @@ button.link { background: none; border: none; color: #0b57d0; cursor: pointer; p
     index = buildIndex(macrosDoc.macros, groupsDoc ? groupsDoc.groups : [], macrosDoc.exported_at);
   }
 
-  async function loadFiles(files) {
+  // With `groupsOnly`, a file that is not groups.json is an error (issue #18).
+  async function loadFiles(files, groupsOnly = false) {
+    // On a search or macro page, the page stays, with the same query and filters.
+    const stay = index !== null && location.hash !== "#/load";
     const errors = [];
     for (const file of files) {
       try {
         const data = JSON.parse(await file.text());
-        if (data && Array.isArray(data.macros)) loaded.macros = data;
-        else if (data && Array.isArray(data.groups)) loaded.groups = data;
-        else errors.push(`${file.name} is not macros.json or groups.json.`);
+        if (data && Array.isArray(data.groups)) loaded.groups = data;
+        else if (data && Array.isArray(data.macros) && !groupsOnly) loaded.macros = data;
+        else errors.push(`${file.name} is not ${groupsOnly ? "groups.json" : "macros.json or groups.json"}.`);
       } catch (e) {
         errors.push(`${file.name} is not a JSON file: ${e.message}`);
       }
@@ -762,7 +772,8 @@ button.link { background: none; border: none; color: #0b57d0; cursor: pointer; p
     loadError = errors.join("\n");
     if (loaded.macros) {
       useDocuments(loaded.macros, loaded.groups);
-      if (!errors.length) { location.hash = "#/"; route(); return; }
+      if (stay) { route(true); return; }
+      if (!errors.length) { location.hash = lastPage || "#/"; route(); return; }
     }
     render(renderLoad());
   }
@@ -777,8 +788,9 @@ button.link { background: none; border: none; color: #0b57d0; cursor: pointer; p
     if (input) { input.focus(); input.setSelectionRange(input.value.length, input.value.length); }
   }
 
-  function route() {
+  function route(keepScroll = false) {
     if (!index || location.hash === "#/load") { render(renderLoad()); return; }
+    lastPage = location.hash;
     const hash = location.hash.replace(/^#\/?/, "");
     const [path, query = ""] = hash.split(/\?(.*)/s);
     const params = new URLSearchParams(query);
@@ -788,7 +800,7 @@ button.link { background: none; border: none; color: #0b57d0; cursor: pointer; p
     } else {
       render(renderSearch(params));
     }
-    window.scrollTo(0, 0);
+    if (!keepScroll) window.scrollTo(0, 0);
   }
 
   app.addEventListener("submit", (event) => {
@@ -800,10 +812,11 @@ button.link { background: none; border: none; color: #0b57d0; cursor: pointer; p
   });
   app.addEventListener("change", (event) => {
     if (event.target.id === "files") loadFiles([...event.target.files]);
+    if (event.target.id === "groups-file") loadFiles([...event.target.files], true);
   });
   app.addEventListener("click", (event) => {
     if (event.target.id === "reload") location.hash = "#/load";
-    if (event.target.id === "show") location.hash = "#/";
+    if (event.target.id === "show") location.hash = lastPage || "#/";
   });
   // Without these handlers, the browser opens a dropped file instead.
   window.addEventListener("dragover", (event) => {
@@ -819,7 +832,8 @@ button.link { background: none; border: none; color: #0b57d0; cursor: pointer; p
     event.preventDefault();
     if (event.dataTransfer && event.dataTransfer.files.length) loadFiles([...event.dataTransfer.files]);
   });
-  window.addEventListener("hashchange", route);
+  // An error of the last load shows only until the next page.
+  window.addEventListener("hashchange", () => { loadError = ""; route(); });
 
   // For test_macro_search_html.py. It reads nothing and sends nothing.
   window.macroSearchTest = Object.freeze({
