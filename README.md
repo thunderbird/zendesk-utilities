@@ -50,6 +50,8 @@ The app is at `http://127.0.0.1:8765/`. It searches the titles, descriptions, re
 3. The colleague drags the two JSON files onto the page, or chooses them with the file picker.
 4. After a reload, the colleague must choose the two files again.
 
+If the colleague loads only `macros.json`, the page shows group IDs instead of group names. To add the names, the colleague chooses `groups.json` in the notice on the search page, or drags it onto the page. The search, the tag filters, and the view stay.
+
 The page sends nothing over the network, and it keeps the macros only in memory. When the tab closes, the data is gone. The page shows when you exported the files, for example "Macros exported 2026-11-27 18:24 UTC". To send newer data, run `uv run scrape_macros.py` again.
 
 ## Create a new macro
