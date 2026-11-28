@@ -59,6 +59,13 @@ macros = [
     macro(10, "Cut::Words - Apostrophe", "<p>" + " ".join(f"word{i}" for i in range(30))
           + " we know you'd like a zebrafish now, and {{ticket.requester.first_name}} too</p>"),
     macro(11, "  donation :: Card :: Update", "<p>Change the card.</p>"),
+    # Issue #13: links keep their URL, and the search finds words in the URL.
+    macro(12, "Roadmap::Mobile app", '<p>Thanks for asking!</p><p><a href="https://roadmaps.example.org/ios/">'
+          "<strong><u>Here is our roadmap</u></strong></a>. Read <a href=\"https://www.example.org\">"
+          "https://www.example.org</a> or write to <a href=\"mailto:help@example.org\">help@example.org</a>.</p>"),
+    macro(13, "Links::Unsafe and dynamic", '<p><a href="javascript:alert(1)">Click <b>here</b></a> or open '
+          '<a href="https://forms.example.org/?ticket={{ticket.id}}&amp;country=[[COUNTRY]]">the form</a>'
+          'now.</p>'),
 ]
 groups = [{"id": 100, "name": "Donor Support"}, {"id": 200, "name": "Tier 2"},
           {"id": 999, "name": "Old team", "deleted": True}]
@@ -76,6 +83,7 @@ queries = [
     {"q": "", "category": "Tie"}, {"q": "", "category": "::"}, {"q": "", "category": "Card"},
     {"q": "", "category": "Lists::Nested"}, {"q": "", "category": "nothing"},
     {"q": "", "status": "active", "group": "100", "category": "Thundermail"},
+    {"q": "roadmaps"}, {"q": "forms example"}, {"q": "javascript"}, {"q": "ticket"},
 ]
 cases = []
 for qd in queries:
@@ -90,7 +98,16 @@ marked_texts = ["Hi {{ticket.requester.first_name}}, {% if x %}yes{% endif %}", 
                 "…AMOUNT]] was charged", "Hi {{x}}. {{dc.donors…", "…first_name}}, hello", "…plain text…",
                 "{{ticket." + ms.HIT_START + "requester" + ms.HIT_END + ".name}}", "<script>&amp;\"'"]
 html_cases = ["<p>Hi&nbsp;<b>there</b></p><p>Bye</p><script>x()</script>", "<ul><li>one</li><li>two</li></ul>",
-              "<ul><li><p>one</p></li><li><p>two</p></li></ul>", "<p>a</p>\n\n\n<p>b</p>", "plain <br> text", "  &lt;tag&gt;  "]
+              "<ul><li><p>one</p></li><li><p>two</p></li></ul>", "<p>a</p>\n\n\n<p>b</p>", "plain <br> text", "  &lt;tag&gt;  ",
+              '<a href="https://example.org/a">Our <b>page</b></a>, more', '<a href=" https://example.org ">https://example.org</a>',
+              '<a href="mailto:a@example.org">a@example.org</a>', '<a href="javascript:x()">run</a>', '<a name="top">Top</a>',
+              '<a href="#">empty</a><a href="">none</a>', '<a href="https://a.example">one<a href="https://b.example">two</a>',
+              '<a href="https://a.example"><div>block</div></a>', '<a href="https://a.example">unclosed']
+linked_texts = ["Our page (https://example.org/a), more", "x (https://a.example)then text",
+                "Wiki (https://en.example.org/Foo_(bar)).", "See https://a.example/x?y=1&z=2, then mailto:a@example.org.",
+                "run (javascript:alert(1)) and ftp://a.example", "form (https://f.example/?t={{ticket.id}}&c=[[COUNTRY]])",
+                "HTTPS://UPPER.example/ and https:// alone and https://.", "<b>https://a.example/\"onmouseover=x</b>",
+                "no links {{dc.sig}} [[DATE]]"]
 doc = {
     "comment": "Shared test cases for macro_search.py and macro_search.html (issue #9). The macros are made up. "
                "Regenerate the expected values only after you check that a change is intended.",
@@ -99,6 +116,7 @@ doc = {
     "search": cases,
     "marked": [{"text": t, "html": ms.marked(t)} for t in marked_texts],
     "html_to_text": [{"html": h, "text": ms.html_to_text(h)} for h in html_cases],
+    "linked": [{"text": t, "html": ms.linked(t)} for t in linked_texts],
     "available_for": [{"id": m["id"], "text": index.available_for(m)} for m in macros],
     "export_label": [{"value": v, "label": ms.export_label(v)} for v in ("2026-11-27T18:00:05Z", None, "yesterday")],
     "group_choices": [list(c) for c in index.group_choices()],
@@ -110,6 +128,10 @@ out.write_text(json.dumps(doc, indent=1, ensure_ascii=False) + "\n", encoding="u
 for c in cases:
     print(repr(c["q"]), c["status"], c["group"], c["field"], c["category"], "->", c["ids"])
 for qq in ("identity", "zebrafish", "requester"):
+    for r in next(c for c in cases if c["q"] == qq)["results"]: print("snippet:", qq, r["id"], r["snippet_html"])
+for h in html_cases[6:]: print("html_to_text:", repr(h), "->", repr(ms.html_to_text(h)))
+for t in linked_texts: print("linked:", ms.linked(t))
+for qq in ("roadmaps", "forms example"):
     for r in next(c for c in cases if c["q"] == qq)["results"]: print("snippet:", qq, r["id"], r["snippet_html"])
 print("categories:", index.category_choices())
 for r in next(c for c in cases if c["q"] == "refund")["results"]: print("refund:", r["title_html"], "|", r["snippet_html"])

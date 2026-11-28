@@ -249,6 +249,44 @@
    "created_at": "2026-01-01T00:00:00Z",
    "updated_at": "2026-01-02T00:00:00Z",
    "url": "https://tbpro.zendesk.com/api/v2/macros/11.json"
+  },
+  {
+   "id": 12,
+   "title": "Roadmap::Mobile app",
+   "raw_title": "Roadmap::Mobile app",
+   "description": "",
+   "active": true,
+   "default": false,
+   "position": 12,
+   "actions": [
+    {
+     "field": "comment_value_html",
+     "value": "<p>Thanks for asking!</p><p><a href=\"https://roadmaps.example.org/ios/\"><strong><u>Here is our roadmap</u></strong></a>. Read <a href=\"https://www.example.org\">https://www.example.org</a> or write to <a href=\"mailto:help@example.org\">help@example.org</a>.</p>"
+    }
+   ],
+   "restriction": null,
+   "created_at": "2026-01-01T00:00:00Z",
+   "updated_at": "2026-01-02T00:00:00Z",
+   "url": "https://tbpro.zendesk.com/api/v2/macros/12.json"
+  },
+  {
+   "id": 13,
+   "title": "Links::Unsafe and dynamic",
+   "raw_title": "Links::Unsafe and dynamic",
+   "description": "",
+   "active": true,
+   "default": false,
+   "position": 13,
+   "actions": [
+    {
+     "field": "comment_value_html",
+     "value": "<p><a href=\"javascript:alert(1)\">Click <b>here</b></a> or open <a href=\"https://forms.example.org/?ticket={{ticket.id}}&amp;country=[[COUNTRY]]\">the form</a>now.</p>"
+    }
+   ],
+   "restriction": null,
+   "created_at": "2026-01-01T00:00:00Z",
+   "updated_at": "2026-01-02T00:00:00Z",
+   "url": "https://tbpro.zendesk.com/api/v2/macros/13.json"
   }
  ],
  "groups": [
@@ -279,8 +317,10 @@
     4,
     10,
     1,
+    13,
     8,
     3,
+    12,
     2,
     5,
     6,
@@ -313,6 +353,11 @@
      "snippet_html": "Hello <span class=\"dc\">{{ticket.requester.first_name}}</span>, We sent your refund today."
     },
     {
+     "id": 13,
+     "title_html": "Links::Unsafe and dynamic",
+     "snippet_html": "Click here (javascript:alert(1)) or open the form (https://forms.example.org/?ticket=<span class=\"dc\">{{ticket.id}}</span>&amp;country=<span class=\"fill\">[[COUNTRY]]</span>)now."
+    },
+    {
      "id": 8,
      "title_html": "Lists::Nested - Steps",
      "snippet_html": "- Open settings - Pick one"
@@ -321,6 +366,11 @@
      "id": 3,
      "title_html": "Old greeting",
      "snippet_html": "Hello, the refund team here."
+    },
+    {
+     "id": 12,
+     "title_html": "Roadmap::Mobile app",
+     "snippet_html": "Thanks for asking! Here is our roadmap (https://roadmaps.example.org/ios/). Read https://www.example.org or write to help@example.org."
     },
     {
      "id": 2,
@@ -612,9 +662,15 @@
    "field": "",
    "category": "",
    "ids": [
+    13,
     5
    ],
    "results": [
+    {
+     "id": 13,
+     "title_html": "Links::Unsafe and dynamic",
+     "snippet_html": "Click here (javascript:alert(1)) or open the form (https://forms.example.org/?ticket=<span class=\"dc\">{{ticket.id}}</span>&amp;<mark>country=<span class=\"fill\">[[COUNTRY</mark>]]</span>)now."
+    },
     {
      "id": 5,
      "title_html": "Thundermail::Aliases - Identity setup",
@@ -643,8 +699,10 @@
     4,
     10,
     1,
+    13,
     8,
     3,
+    12,
     2,
     5,
     6,
@@ -677,6 +735,11 @@
      "snippet_html": "Hello <span class=\"dc\">{{ticket.requester.first_name}}</span>, We sent your refund today."
     },
     {
+     "id": 13,
+     "title_html": "Links::Unsafe and dynamic",
+     "snippet_html": "Click here (javascript:alert(1)) or open the form (https://forms.example.org/?ticket=<span class=\"dc\">{{ticket.id}}</span>&amp;country=<span class=\"fill\">[[COUNTRY]]</span>)now."
+    },
+    {
      "id": 8,
      "title_html": "Lists::Nested - Steps",
      "snippet_html": "- Open settings - Pick one"
@@ -685,6 +748,11 @@
      "id": 3,
      "title_html": "Old greeting",
      "snippet_html": "Hello, the refund team here."
+    },
+    {
+     "id": 12,
+     "title_html": "Roadmap::Mobile app",
+     "snippet_html": "Thanks for asking! Here is our roadmap (https://roadmaps.example.org/ios/). Read https://www.example.org or write to help@example.org."
     },
     {
      "id": 2,
@@ -784,8 +852,10 @@
     11,
     9,
     10,
+    13,
     8,
     3,
+    12,
     2,
     6,
     7
@@ -807,6 +877,11 @@
      "snippet_html": "word0 word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12 word13 word14 word15 word16 word17 word18 word19 word20 word21 word22 word23 word24 word25 word26 word27 word28 word29 we know you&#x27;d like …"
     },
     {
+     "id": 13,
+     "title_html": "Links::Unsafe and dynamic",
+     "snippet_html": "Click here (javascript:alert(1)) or open the form (https://forms.example.org/?ticket=<span class=\"dc\">{{ticket.id}}</span>&amp;country=<span class=\"fill\">[[COUNTRY]]</span>)now."
+    },
+    {
      "id": 8,
      "title_html": "Lists::Nested - Steps",
      "snippet_html": "- Open settings - Pick one"
@@ -815,6 +890,11 @@
      "id": 3,
      "title_html": "Old greeting",
      "snippet_html": "Hello, the refund team here."
+    },
+    {
+     "id": 12,
+     "title_html": "Roadmap::Mobile app",
+     "snippet_html": "Thanks for asking! Here is our roadmap (https://roadmaps.example.org/ios/). Read https://www.example.org or write to help@example.org."
     },
     {
      "id": 2,
@@ -1111,6 +1191,92 @@
      "snippet_html": "<span class=\"dc\">{{dc.signature_block}}</span> Hello <span class=\"dc\">{{ticket.requester.first_name}}</span>, Thanks for writing to us about your account. We read every message and we answer as soon as we can. Before you change anything, please make a backup of your …"
     }
    ]
+  },
+  {
+   "q": "roadmaps",
+   "status": "all",
+   "group": "",
+   "field": "",
+   "category": "",
+   "ids": [
+    12
+   ],
+   "results": [
+    {
+     "id": 12,
+     "title_html": "Roadmap::Mobile app",
+     "snippet_html": "Thanks for asking!\n\nHere is our roadmap (https://<mark>roadmaps</mark>.example.org/ios/). Read https://www.example.org or write to help@example.org."
+    }
+   ]
+  },
+  {
+   "q": "forms example",
+   "status": "all",
+   "group": "",
+   "field": "",
+   "category": "",
+   "ids": [
+    13
+   ],
+   "results": [
+    {
+     "id": 13,
+     "title_html": "Links::Unsafe and dynamic",
+     "snippet_html": "Click here (javascript:alert(1)) or open the form (https://<mark>forms.example</mark>.org/?ticket=<span class=\"dc\">{{ticket.id}}</span>&amp;country=<span class=\"fill\">[[COUNTRY]]</span>)now."
+    }
+   ]
+  },
+  {
+   "q": "javascript",
+   "status": "all",
+   "group": "",
+   "field": "",
+   "category": "",
+   "ids": [
+    13
+   ],
+   "results": [
+    {
+     "id": 13,
+     "title_html": "Links::Unsafe and dynamic",
+     "snippet_html": "Click here (<mark>javascript</mark>:alert(1)) or open the form (https://forms.example.org/?ticket=<span class=\"dc\">{{ticket.id}}</span>&amp;country=<span class=\"fill\">[[COUNTRY]]</span>)now."
+    }
+   ]
+  },
+  {
+   "q": "ticket",
+   "status": "all",
+   "group": "",
+   "field": "",
+   "category": "",
+   "ids": [
+    13,
+    1,
+    10,
+    5
+   ],
+   "results": [
+    {
+     "id": 13,
+     "title_html": "Links::Unsafe and dynamic",
+     "snippet_html": "Click here (javascript:alert(1)) or open the form (https://forms.example.org/?<mark>ticket=<span class=\"dc\">{{ticket</mark>.id}}</span>&amp;country=<span class=\"fill\">[[COUNTRY]]</span>)now."
+    },
+    {
+     "id": 1,
+     "title_html": "Donation::Refund request",
+     "snippet_html": "Hello <span class=\"dc\">{{<mark>ticket</mark>.requester.first_name}}</span>,\n\nWe sent your refund today."
+    },
+    {
+     "id": 10,
+     "title_html": "Cut::Words - Apostrophe",
+     "snippet_html": "…word20 word21 word22 word23 word24 word25 word26 word27 word28 word29 we know you&#x27;d like a zebrafish now, and <span class=\"dc\">{{<mark>ticket</mark>.requester.first_name}}</span> too"
+    },
+    {
+     "id": 5,
+     "title_html": "Thundermail::Aliases - Identity setup",
+     "snippet_html": "…<span class=\"dc\">{{dc.signature_block}}</span> Hello <span class=\"dc\">{{<mark>ticket</mark>.requester.first_name}}</span>,\n\nThanks for writing to us about your account. We read every message and we answer as soon…"
+    }
+   ]
   }
  ],
  "marked": [
@@ -1191,6 +1357,80 @@
   {
    "html": "  &lt;tag&gt;  ",
    "text": "<tag>"
+  },
+  {
+   "html": "<a href=\"https://example.org/a\">Our <b>page</b></a>, more",
+   "text": "Our page (https://example.org/a), more"
+  },
+  {
+   "html": "<a href=\" https://example.org \">https://example.org</a>",
+   "text": "https://example.org"
+  },
+  {
+   "html": "<a href=\"mailto:a@example.org\">a@example.org</a>",
+   "text": "a@example.org"
+  },
+  {
+   "html": "<a href=\"javascript:x()\">run</a>",
+   "text": "run (javascript:x())"
+  },
+  {
+   "html": "<a name=\"top\">Top</a>",
+   "text": "Top"
+  },
+  {
+   "html": "<a href=\"#\">empty</a><a href=\"\">none</a>",
+   "text": "empty (#)none"
+  },
+  {
+   "html": "<a href=\"https://a.example\">one<a href=\"https://b.example\">two</a>",
+   "text": "one (https://a.example)two (https://b.example)"
+  },
+  {
+   "html": "<a href=\"https://a.example\"><div>block</div></a>",
+   "text": "block\n(https://a.example)"
+  },
+  {
+   "html": "<a href=\"https://a.example\">unclosed",
+   "text": "unclosed (https://a.example)"
+  }
+ ],
+ "linked": [
+  {
+   "text": "Our page (https://example.org/a), more",
+   "html": "Our page (<a href=\"https://example.org/a\" target=\"_blank\" rel=\"noopener noreferrer\">https://example.org/a</a>), more"
+  },
+  {
+   "text": "x (https://a.example)then text",
+   "html": "x (<a href=\"https://a.example\" target=\"_blank\" rel=\"noopener noreferrer\">https://a.example</a>)then text"
+  },
+  {
+   "text": "Wiki (https://en.example.org/Foo_(bar)).",
+   "html": "Wiki (<a href=\"https://en.example.org/Foo_(bar)\" target=\"_blank\" rel=\"noopener noreferrer\">https://en.example.org/Foo_(bar)</a>)."
+  },
+  {
+   "text": "See https://a.example/x?y=1&z=2, then mailto:a@example.org.",
+   "html": "See <a href=\"https://a.example/x?y=1&amp;z=2\" target=\"_blank\" rel=\"noopener noreferrer\">https://a.example/x?y=1&amp;z=2</a>, then <a href=\"mailto:a@example.org\" target=\"_blank\" rel=\"noopener noreferrer\">mailto:a@example.org</a>."
+  },
+  {
+   "text": "run (javascript:alert(1)) and ftp://a.example",
+   "html": "run (javascript:alert(1)) and ftp://a.example"
+  },
+  {
+   "text": "form (https://f.example/?t={{ticket.id}}&c=[[COUNTRY]])",
+   "html": "form (<a href=\"https://f.example/?t={{ticket.id}}&amp;c=[[COUNTRY]]\" target=\"_blank\" rel=\"noopener noreferrer\">https://f.example/?t=<span class=\"dc\">{{ticket.id}}</span>&amp;c=<span class=\"fill\">[[COUNTRY]]</span></a>)"
+  },
+  {
+   "text": "HTTPS://UPPER.example/ and https:// alone and https://.",
+   "html": "<a href=\"HTTPS://UPPER.example/\" target=\"_blank\" rel=\"noopener noreferrer\">HTTPS://UPPER.example/</a> and https:// alone and https://."
+  },
+  {
+   "text": "<b>https://a.example/\"onmouseover=x</b>",
+   "html": "&lt;b&gt;<a href=\"https://a.example/\" target=\"_blank\" rel=\"noopener noreferrer\">https://a.example/</a>&quot;onmouseover=x&lt;/b&gt;"
+  },
+  {
+   "text": "no links {{dc.sig}} [[DATE]]",
+   "html": "no links <span class=\"dc\">{{dc.sig}}</span> <span class=\"fill\">[[DATE]]</span>"
   }
  ],
  "available_for": [
@@ -1237,6 +1477,14 @@
   {
    "id": 11,
    "text": "All agents"
+  },
+  {
+   "id": 12,
+   "text": "All agents"
+  },
+  {
+   "id": 13,
+   "text": "All agents"
   }
  ],
  "export_label": [
@@ -1257,7 +1505,7 @@
   [
    "none",
    "All agents (no restriction)",
-   8
+   10
   ],
   [
    "100",
@@ -1282,7 +1530,7 @@
   ],
   [
    "comment_value_html",
-   10
+   12
   ],
   [
    "current_tags",
@@ -1307,7 +1555,15 @@
    2
   ],
   [
+   "Links",
+   1
+  ],
+  [
    "Lists",
+   1
+  ],
+  [
+   "Roadmap",
    1
   ],
   [
