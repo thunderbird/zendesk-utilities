@@ -154,6 +154,19 @@ class Pages(unittest.TestCase):
         self.assertNotIn("<b>x", evil)
         self.assertIn("&lt;b&gt;x&lt;/b&gt; &amp; &quot;y&quot;", evil)
 
+    def test_reply_links_on_the_detail_page(self):
+        reply = ('<p><a href="https://roadmaps.example.org/ios/"><b>Our roadmap</b></a>. '
+                 '<a href="javascript:alert(1)">Run</a></p>')
+        index = ms.MacroIndex([macro(7, "Roadmap::Mobile", reply)], [])
+        self.assertEqual(index.replies[7], "Our roadmap (https://roadmaps.example.org/ios/). Run (javascript:alert(1))")
+        link = ('<a href="https://roadmaps.example.org/ios/" target="_blank" rel="noopener noreferrer">'
+                "https://roadmaps.example.org/ios/</a>")
+        body = ms.render_macro(index, 7, "")
+        self.assertIn(f'<div class="reply">Our roadmap ({link}). Run (javascript:alert(1))</div>', body)
+        self.assertIn(f'<td class="value">Our roadmap ({link})', body)
+        self.assertNotIn('href="javascript', body)
+        self.assertEqual([r["id"] for r in index.search("roadmaps")], [7])
+
     def test_search_input_is_escaped(self):
         body = ms.render_search(ms.MacroIndex(MACROS, GROUPS), {"q": '"><script>x</script>'})
         self.assertNotIn("<script>x", body)

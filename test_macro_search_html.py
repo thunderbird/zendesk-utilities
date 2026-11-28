@@ -116,6 +116,11 @@ class SharedCasesInBrowser(BrowserTestCase):
                                  [c["html"] for c in CASES["html_to_text"]])
         self.assertEqual(got, [c["text"] for c in CASES["html_to_text"]])
 
+    def test_linked(self):
+        got = self.page.evaluate("ts => ts.map(t => window.macroSearchTest.linked(t))",
+                                 [c["text"] for c in CASES["linked"]])
+        self.assertEqual(got, [c["html"] for c in CASES["linked"]])
+
     def test_names_choices_and_export_label(self):
         t = "window.macroSearchTest"
         self.assertEqual(self.page.evaluate(f"ids => ids.map(i => {t}.availableFor(i))",
@@ -188,6 +193,20 @@ class LoadAndSearch(BrowserTestCase):
         self.page.wait_for_selector("h2:text('Actions')")
         self.assertEqual(self.page.inner_text("h1"), "<b>Escape</b> & \"quotes\" 'single'")
         self.assertEqual(self.page.locator("h1 b").count(), 0)
+
+    def test_reply_links_open_in_a_new_tab(self):
+        self.page.evaluate("([m, g]) => window.macroSearchTest.load(m, g)",
+                           [{"macros": CASES["macros"]}, {"groups": CASES["groups"]}])
+        self.page.evaluate("location.hash = '#/macro/12'")
+        self.page.wait_for_selector("h2:text('Actions')")
+        links = self.page.eval_on_selector_all(
+            "div.reply a", "as => as.map(a => [a.getAttribute('href'), a.target, a.rel, a.textContent])")
+        self.assertEqual(links, [[url, "_blank", "noopener noreferrer", url]
+                                 for url in ("https://roadmaps.example.org/ios/", "https://www.example.org")])
+        self.page.evaluate("location.hash = '#/macro/13'")
+        self.page.wait_for_selector("h1:text('Links::Unsafe and dynamic')")
+        self.assertEqual(self.page.locator("div.reply a[href^='javascript']").count(), 0)
+        self.assertEqual(self.page.locator("div.reply a .dc").inner_text(), "{{ticket.id}}")
 
 
 if __name__ == "__main__":

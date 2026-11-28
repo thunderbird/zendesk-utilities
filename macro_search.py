@@ -69,10 +69,21 @@ class _TextExtractor(HTMLParser):
         super().__init__(convert_charrefs=True)
         self.parts: list[str] = []
         self.skipping = 0
+        self.link: tuple[int, str] | None = None  # (start in parts, href) of the open <a>
+
+    def end_link(self):
+        if self.link:
+            start, href = self.link
+            self.parts.append(link_suffix("".join(self.parts[start:]), href))
+            self.link = None
 
     def handle_starttag(self, tag, attrs):
         if tag in self.SKIP:
             self.skipping += 1
+        elif tag == "a":
+            self.end_link()  # a new <a> closes the open one, as in a browser
+            href = next((v for k, v in attrs if k == "href"), None)
+            self.link = (len(self.parts), href or "")
         elif tag in self.BLOCK:
             # A <p> inside a list item stays on the "- " line.
             if not (self.parts and self.parts[-1] == "- "):
@@ -83,6 +94,8 @@ class _TextExtractor(HTMLParser):
     def handle_endtag(self, tag):
         if tag in self.SKIP:
             self.skipping = max(0, self.skipping - 1)
+        elif tag == "a":
+            self.end_link()
         elif tag in self.BLOCK:
             self.parts.append("\n")
 
@@ -91,11 +104,28 @@ class _TextExtractor(HTMLParser):
             self.parts.append(data)
 
 
+def link_suffix(text: str, href: str) -> str:
+    """ " (URL)" after the text of a link, or "" if the text is the URL (issue #13).
+
+    The URL becomes part of the reply text, so the search finds it, and the
+    detail page makes it a link with linked().
+    """
+    href = href.strip()
+    label = " ".join(text.split())
+    if not href or href in (label, "mailto:" + label):
+        return ""
+    return f" ({href})"
+
+
 def html_to_text(source: str) -> str:
-    """Plain text of a macro's HTML comment, with paragraph breaks kept."""
+    """Plain text of a macro's HTML comment, with paragraph breaks kept.
+
+    A link keeps its text, followed by its URL in parentheses.
+    """
     parser = _TextExtractor()
     parser.feed(source)
     parser.close()
+    parser.end_link()  # an <a> without </a> ends with the text
     text = "".join(parser.parts)
     text = re.sub(r"[ \t\r\f\v\xa0]+", " ", text)
     text = re.sub(r" *\n *", "\n", text)
@@ -454,6 +484,43 @@ def show(value) -> str:
     return fill_in(dynamic(esc(value)))
 
 
+# URLs that the detail page makes clickable. Other schemes, for example
+# javascript:, stay plain text.
+URL = re.compile(r"(?:https?://|mailto:)[^\s<>\"']+", re.IGNORECASE)
+URL_START = re.compile(r"(?:https?://|mailto:).", re.IGNORECASE)
+
+
+def _trim_url(url: str) -> str:
+    """Cut a URL at a ")" without its "(", and remove punctuation at the end.
+
+    html_to_text() writes "text (URL)", and text can follow the ")" directly.
+    """
+    depth = 0
+    for i, c in enumerate(url):
+        if c == "(":
+            depth += 1
+        elif c == ")":
+            if not depth:
+                url = url[:i]
+                break
+            depth -= 1
+    return url.rstrip(".,;:!?")
+
+
+def linked(text: str) -> str:
+    """show() for the reply text, with every http, https, and mailto URL as a link."""
+    out, pos = [], 0
+    for m in URL.finditer(text):
+        url = _trim_url(m.group())
+        if not URL_START.match(url):
+            continue
+        out.append(show(text[pos:m.start()]))
+        out.append(f'<a href="{esc(url)}" target="_blank" rel="noopener noreferrer">{show(url)}</a>')
+        pos = m.start() + len(url)
+    out.append(show(text[pos:]))
+    return "".join(out)
+
+
 # A snippet can cut a placeholder or a fill-in marker at either end:
 # "{{dc.donors…", "…name}}", "[[Insert questions…", or "…COUNTRY]]".
 PARTIAL = re.compile(r"\{\{[^{}]*…$|^…[^{}]*\}\}")
@@ -578,7 +645,9 @@ def render_search(index: MacroIndex, params: dict[str, str]) -> str:
 
 def render_value(index: MacroIndex, field: str, value) -> str:
     if field == "comment_value_html":
-        return show(html_to_text(as_text(value)))
+        return linked(html_to_text(as_text(value)))
+    if field == "comment_value":
+        return linked(as_text(value))
     if field == "group_id" and str(value).isdigit():
         return esc(f"{index.group_name(int(value))} ({value})")
     return show(value)
@@ -597,7 +666,7 @@ def render_macro(index: MacroIndex, macro_id: int, back_qs: str) -> str:
         f'<p class="meta">{status_badge(m)} · {esc(index.available_for(m))} · {zendesk_link(index, macro_id)}<br>'
         f'Created {esc(m.get("created_at"))} · Updated {esc(m.get("updated_at"))} · ID {macro_id}</p>'
         + (f'<h2>Description</h2><p class="reply">{show(m.get("description"))}</p>' if m.get("description") else "")
-        + (f'<h2>Reply</h2><div class="reply">{show(reply)}</div>' if reply else "")
+        + (f'<h2>Reply</h2><div class="reply">{linked(reply)}</div>' if reply else "")
         + f'<h2>Actions</h2><table>{rows}</table>'
         + '<details><summary>API JSON</summary><pre class="json">'
         + esc(json.dumps(m, indent=2, ensure_ascii=False)) + "</pre></details>"

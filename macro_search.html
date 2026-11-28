@@ -16,7 +16,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'sha256-1LNncRDRjTbCmwmgdIL5Mumb0vmr4wQr/dYyppvAdN0='; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'sha256-e/DetXBOB6iNJpi0umYriMcT5Q1BO6QwWCuuyeiGvHc='; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Zendesk macros</title>
@@ -69,6 +69,14 @@ button.link { background: none; border: none; color: #0b57d0; cursor: pointer; p
                          "pre", "h1", "h2", "h3", "h4", "h5", "h6", "hr"]);
   const SKIP = new Set(["script", "style"]);
 
+  // " (URL)" after the text of a link, or "" if the text is the URL (issue #13).
+  function linkSuffix(text, href) {
+    href = href.trim();
+    const label = text.split(/\s+/).filter((w) => w).join(" ");
+    if (!href || href === label || href === "mailto:" + label) return "";
+    return ` (${href})`;
+  }
+
   function htmlToText(source) {
     // DOMParser documents are inert: no scripts run and no images load.
     const doc = new DOMParser().parseFromString(source, "text/html");
@@ -84,7 +92,9 @@ button.link { background: none; border: none; color: #0b57d0; cursor: pointer; p
           if (!(parts.length && parts[parts.length - 1] === "- ")) parts.push("\n");
           if (tag === "li") parts.push("- ");
         }
+        const start = parts.length;
         walk(child);
+        if (tag === "a") parts.push(linkSuffix(parts.slice(start).join(""), child.getAttribute("href") || ""));
         if (block && tag !== "br" && tag !== "hr") parts.push("\n");
       }
     };
@@ -380,6 +390,39 @@ button.link { background: none; border: none; color: #0b57d0; cursor: pointer; p
   const fillIn = (escaped) => escaped.replace(FILL_IN, (m) => `<span class="fill">${m}</span>`);
   const show = (value) => fillIn(dynamic(esc(value)));
 
+  // URLs that the detail page makes clickable. Other schemes, for example
+  // javascript:, stay plain text.
+  const URL_RE = /(?:https?:\/\/|mailto:)[^\s<>"']+/gi;
+  const URL_START = /^(?:https?:\/\/|mailto:)./i;
+
+  // Cut a URL at a ")" without its "(", and remove punctuation at the end.
+  function trimUrl(url) {
+    let depth = 0;
+    for (let i = 0; i < url.length; i++) {
+      if (url[i] === "(") depth++;
+      else if (url[i] === ")") {
+        if (!depth) { url = url.slice(0, i); break; }
+        depth--;
+      }
+    }
+    return url.replace(/[.,;:!?]+$/, "");
+  }
+
+  // show() for the reply text, with every http, https, and mailto URL as a link.
+  function linked(text) {
+    const out = [];
+    let pos = 0;
+    for (const m of text.matchAll(URL_RE)) {
+      const url = trimUrl(m[0]);
+      if (!URL_START.test(url)) continue;
+      out.push(show(text.slice(pos, m.index)));
+      out.push(`<a href="${esc(url)}" target="_blank" rel="noopener noreferrer">${show(url)}</a>`);
+      pos = m.index + url.length;
+    }
+    out.push(show(text.slice(pos)));
+    return out.join("");
+  }
+
   function marked(text) {
     let h = show(text).replace(PARTIAL, (m) => `<span class="dc">${m}</span>`);
     h = h.replace(PARTIAL_FILL, (m) => `<span class="fill">${m}</span>`);
@@ -456,7 +499,8 @@ button.link { background: none; border: none; color: #0b57d0; cursor: pointer; p
   }
 
   function renderValue(field, value) {
-    if (field === "comment_value_html") return show(htmlToText(asText(value)));
+    if (field === "comment_value_html") return linked(htmlToText(asText(value)));
+    if (field === "comment_value") return linked(asText(value));
     if (field === "group_id" && /^\d+$/.test(String(value))) {
       return esc(`${groupName(Number(value))} (${value})`);
     }
@@ -474,7 +518,7 @@ button.link { background: none; border: none; color: #0b57d0; cursor: pointer; p
       `<p class="meta">${statusBadge(m)} · ${esc(availableFor(m))} · ${zendeskLink(id)}<br>` +
       `Created ${esc(m.created_at)} · Updated ${esc(m.updated_at)} · ID ${esc(id)}</p>` +
       (m.description ? `<h2>Description</h2><p class="reply">${show(m.description)}</p>` : "") +
-      (reply ? `<h2>Reply</h2><div class="reply">${show(reply)}</div>` : "") +
+      (reply ? `<h2>Reply</h2><div class="reply">${linked(reply)}</div>` : "") +
       `<h2>Actions</h2><table>${rows}</table>` +
       '<details><summary>API JSON</summary><pre class="json">' + esc(JSON.stringify(m, null, 2)) +
       "</pre></details>";
@@ -585,7 +629,7 @@ button.link { background: none; border: none; color: #0b57d0; cursor: pointer; p
       return search(q, status, group, field, category).map((r) =>
         ({ id: r.id, title_html: marked(r.title), snippet_html: marked(r.snippet) }));
     },
-    marked, htmlToText, exportLabel,
+    marked, htmlToText, linked, exportLabel,
     availableFor(id) { return availableFor(index.macros.get(id)); },
     groupChoices() { return groupChoices(); },
     fieldChoices() { return fieldChoices(); },

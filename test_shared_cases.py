@@ -45,6 +45,11 @@ class SharedCases(unittest.TestCase):
             with self.subTest(case["html"]):
                 self.assertEqual(ms.html_to_text(case["html"]), case["text"])
 
+    def test_linked(self):
+        for case in CASES["linked"]:
+            with self.subTest(case["text"]):
+                self.assertEqual(ms.linked(case["text"]), case["html"])
+
     def test_names_choices_and_export_label(self):
         macros = {m["id"]: m for m in CASES["macros"]}
         for case in CASES["available_for"]:
